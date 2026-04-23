@@ -35,37 +35,16 @@ The project supports two main flows:
 
 ```text
 .
+├── apps/
+│   ├── Gec_Server_C/
+│   └── projj/
 ├── README.md
 ├── PROJECT_OVERVIEW.md
-├── Gec_Server_C/
-│   ├── backend/
-│   │   ├── app.py
-│   │   ├── agent.py
-│   │   ├── chain_api.py
-│   │   ├── aptos_client.py
-│   │   └── config.py
-│   ├── frontend/
-│   │   ├── index.html
-│   │   ├── app.js
-│   │   └── styles.css
-│   ├── mcp_server.py
-│   └── openapi.json
-└── projj/
-    ├── index.html
-    ├── app-config.js
-    ├── app-init.js
-    ├── app-chat.js
-    ├── app-marketplace.js
-    ├── app-registry.js
-    ├── rag_service.py
-    ├── rag_index.py
-    ├── rag_main.py
-    └── backend/
-        ├── server.js
-        ├── routes/auth.js
-        ├── models/
-        └── config/db.js
+├── Gec_Server_C -> apps/Gec_Server_C  (compat symlink)
+└── projj -> apps/projj                (compat symlink)
 ```
+
+Canonical locations now live under `apps/`. Existing paths `./projj` and `./Gec_Server_C` still work through symlinks so old commands remain valid.
 
 ## Main Services
 
