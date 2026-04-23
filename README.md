@@ -38,23 +38,24 @@ The project supports two main flows:
 ├── apps/
 │   ├── Gec_Server_C/
 │   └── projj/
-├── README.md
-├── PROJECT_OVERVIEW.md
-├── Gec_Server_C -> apps/Gec_Server_C  (compat symlink)
-└── projj -> apps/projj                (compat symlink)
+├── docs/
+│   ├── AGENT_SKILLS.md
+│   ├── PROJECT_OVERVIEW.md
+│   └── README.md
+└── README.md
 ```
 
-Canonical locations now live under `apps/`. Existing paths `./projj` and `./Gec_Server_C` still work through symlinks so old commands remain valid.
+Canonical locations live under `apps/`. Use `apps/projj` and `apps/Gec_Server_C` for all commands, env files, and IDE workspace references.
 
 ## Main Services
 
 | Service | Folder | Default URL | Purpose |
 | --- | --- | --- | --- |
-| Frontend | `projj/` | Browser/static file | Main EnergyCert Bot UI |
-| Node router backend | `projj/backend/` | `http://127.0.0.1:3000` | Routes chat to RAG or action backend, handles auth |
-| RAG service | `projj/` | `http://127.0.0.1:8000` | Answers GEC/project questions |
-| Action backend | `Gec_Server_C/` | `http://127.0.0.1:8001` | Executes certificate/marketplace/audit actions |
-| MCP proxy | `Gec_Server_C/` | `http://127.0.0.1:8002` | Optional OpenAPI-to-tool proxy |
+| Frontend | `apps/projj/` | Browser/static file | Main EnergyCert Bot UI |
+| Node router backend | `apps/projj/backend/` | `http://127.0.0.1:3000` | Routes chat to RAG or action backend, handles auth |
+| RAG service | `apps/projj/` | `http://127.0.0.1:8000` | Answers GEC/project questions |
+| Action backend | `apps/Gec_Server_C/` | `http://127.0.0.1:8001` | Executes certificate/marketplace/audit actions |
+| MCP proxy | `apps/Gec_Server_C/` | `http://127.0.0.1:8002` | Optional OpenAPI-to-tool proxy |
 
 ## Prerequisites
 
@@ -71,13 +72,13 @@ Install these first:
 
 ### RAG Service Environment
 
-The RAG service is inside `projj/`.
+The RAG service is inside `apps/projj/`.
 
-Create `projj/.env` or export these variables in your terminal:
+Create `apps/projj/.env` or export these variables in your terminal:
 
 ```bash
 OPENAI_API_KEY="your-openai-api-key"
-GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/projj"
+GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
 GEC_INDEX_PATH="gec_rag_index"
 GEC_EMBED_MODEL="text-embedding-3-small"
 GEC_CHAT_MODEL="gpt-4o-mini"
@@ -86,14 +87,14 @@ GEC_CHAT_MODEL="gpt-4o-mini"
 Important: `GEC_REPO_PATH` should point to the folder you want the RAG index to read. On this machine, use:
 
 ```bash
-GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/projj"
+GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
 ```
 
 ### Node Backend Environment
 
-The Node backend is inside `projj/backend/`.
+The Node backend is inside `apps/projj/backend/`.
 
-Create `projj/backend/.env`:
+Create `apps/projj/backend/.env`:
 
 ```bash
 PORT=3000
@@ -114,9 +115,9 @@ Email variables are only required if you want registration/login OTP email to wo
 
 ### Action Backend Environment
 
-The action backend is inside `Gec_Server_C/backend/`.
+The action backend is inside `apps/Gec_Server_C/backend/`.
 
-Create `Gec_Server_C/backend/.env`:
+Create `apps/Gec_Server_C/backend/.env`:
 
 ```bash
 OPENAI_API_KEY="your-openai-api-key"
@@ -143,12 +144,12 @@ Run each service in a separate terminal.
 ### Terminal 1: Start the RAG Service
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/projj
+cd /Users/umarfarooq/Github/FYP/apps/projj
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export OPENAI_API_KEY="your-openai-api-key"
-export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/projj"
+export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
 python build_rag_index.py
 uvicorn rag_service:app --host 127.0.0.1 --port 8000
 ```
@@ -164,7 +165,7 @@ Expected result: JSON response saying the GEC RAG service is running.
 ### Terminal 2: Start the Action Backend
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/Gec_Server_C
+cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
 python -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
@@ -191,7 +192,7 @@ Expected result:
 This is optional, but required if the action backend `/chat` flow is using MCP tool invocation.
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/Gec_Server_C
+cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
 source .venv/bin/activate
 export UNDERLYING_REST_BASE="http://127.0.0.1:8001"
 uvicorn mcp_server:app --host 127.0.0.1 --port 8002
@@ -208,7 +209,7 @@ Expected result: JSON list of tools such as `cert_create`, `cert_transfer`, `mar
 ### Terminal 4: Start the Node Router Backend
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/projj/backend
+cd /Users/umarfarooq/Github/FYP/apps/projj/backend
 npm install
 npm run dev
 ```
@@ -226,7 +227,7 @@ Expected result: JSON response from `projj-node-backend`.
 The main frontend is:
 
 ```text
-/Users/umarfarooq/Github/FYP/projj/index.html
+/Users/umarfarooq/Github/FYP/apps/projj/index.html
 ```
 
 You can open it directly in the browser, or serve it with a local static server.
@@ -234,13 +235,13 @@ You can open it directly in the browser, or serve it with a local static server.
 Option A: open directly:
 
 ```bash
-open /Users/umarfarooq/Github/FYP/projj/index.html
+open /Users/umarfarooq/Github/FYP/apps/projj/index.html
 ```
 
 Option B: serve with Python:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/projj
+cd /Users/umarfarooq/Github/FYP/apps/projj
 python -m http.server 5500
 ```
 
@@ -362,10 +363,10 @@ Expected behavior:
 Run:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/projj
+cd /Users/umarfarooq/Github/FYP/apps/projj
 source .venv/bin/activate
 export OPENAI_API_KEY="your-openai-api-key"
-export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/projj"
+export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
 python build_rag_index.py
 ```
 
@@ -377,7 +378,7 @@ uvicorn rag_service:app --host 127.0.0.1 --port 8000
 
 ### Node backend cannot connect to MongoDB
 
-Check `projj/backend/.env`:
+Check `apps/projj/backend/.env`:
 
 ```bash
 MONGO_URI="your-mongodb-uri"
@@ -412,10 +413,10 @@ MCP_SERVER_URL="http://127.0.0.1:8002/mcp/invoke"
 
 ### MCP proxy cannot find `openapi.json`
 
-Start it from `Gec_Server_C`:
+Start it from `apps/Gec_Server_C`:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/Gec_Server_C
+cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
 uvicorn mcp_server:app --host 127.0.0.1 --port 8002
 ```
 
@@ -438,18 +439,18 @@ Use this order for fewer errors:
 2. Start action backend on `8001`.
 3. Start MCP proxy on `8002`.
 4. Start Node router on `3000`.
-5. Open `projj/index.html`.
+5. Open `apps/projj/index.html`.
 
 ## More Detailed Documentation
 
 For a full file-by-file explanation of the project, read:
 
 ```text
-PROJECT_OVERVIEW.md
+docs/PROJECT_OVERVIEW.md
 ```
 
 For AI-agent capabilities, ownership, maturity levels, and upgrade priorities, read:
 
 ```text
-AGENT_SKILLS.md
+docs/AGENT_SKILLS.md
 ```
