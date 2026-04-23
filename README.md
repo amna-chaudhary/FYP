@@ -227,6 +227,12 @@ Expected result: JSON response from `projj-node-backend`.
 The main frontend is:
 
 ```text
+/Users/umarfarooq/Github/FYP/apps/projj/frontend/pages/index.html
+```
+
+Compatibility entrypoint also exists:
+
+```text
 /Users/umarfarooq/Github/FYP/apps/projj/index.html
 ```
 
@@ -235,7 +241,7 @@ You can open it directly in the browser, or serve it with a local static server.
 Option A: open directly:
 
 ```bash
-open /Users/umarfarooq/Github/FYP/apps/projj/index.html
+open /Users/umarfarooq/Github/FYP/apps/projj/frontend/pages/index.html
 ```
 
 Option B: serve with Python:
@@ -439,7 +445,7 @@ Use this order for fewer errors:
 2. Start action backend on `8001`.
 3. Start MCP proxy on `8002`.
 4. Start Node router on `3000`.
-5. Open `apps/projj/index.html`.
+5. Open `apps/projj/frontend/pages/index.html`.
 
 ## More Detailed Documentation
 
