@@ -49,13 +49,13 @@ Canonical locations live under `apps/`. Use `apps/projj` and `apps/Gec_Server_C`
 
 ## Main Services
 
-| Service | Folder | Default URL | Purpose |
-| --- | --- | --- | --- |
-| Frontend | `apps/projj/` | Browser/static file | Main EnergyCert Bot UI |
+| Service             | Folder                | Default URL             | Purpose                                            |
+| ------------------- | --------------------- | ----------------------- | -------------------------------------------------- |
+| Frontend            | `apps/projj/`         | Browser/static file     | Main EnergyCert Bot UI                             |
 | Node router backend | `apps/projj/backend/` | `http://127.0.0.1:3000` | Routes chat to RAG or action backend, handles auth |
-| RAG service | `apps/projj/` | `http://127.0.0.1:8000` | Answers GEC/project questions |
-| Action backend | `apps/Gec_Server_C/` | `http://127.0.0.1:8001` | Executes certificate/marketplace/audit actions |
-| MCP proxy | `apps/Gec_Server_C/` | `http://127.0.0.1:8002` | Optional OpenAPI-to-tool proxy |
+| RAG service         | `apps/projj/`         | `http://127.0.0.1:8000` | Answers GEC/project questions                      |
+| Action backend      | `apps/Gec_Server_C/`  | `http://127.0.0.1:8001` | Executes certificate/marketplace/audit actions     |
+| MCP proxy           | `apps/Gec_Server_C/`  | `http://127.0.0.1:8002` | Optional OpenAPI-to-tool proxy                     |
 
 ## Prerequisites
 
@@ -68,6 +68,48 @@ Install these first:
 - OpenAI API key for RAG and LLM responses
 - Aptos testnet account/private key if you want real blockchain transactions
 
+## Install Modules (Dependencies)
+
+Install dependencies once before running services.
+
+### 1) Node Backend (`apps/projj/backend`)
+
+```bash
+cd ./apps/projj/backend
+npm install
+```
+
+### 2) RAG Python Service (`apps/projj`)
+
+```bash
+cd ./apps/projj
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 -m pip install faiss-cpu
+```
+
+Why `faiss-cpu`:
+
+- RAG index loading uses FAISS; without it, startup fails with `No module named 'faiss'`.
+
+### 3) Action Backend Python Service (`apps/Gec_Server_C`)
+
+```bash
+cd ./apps/Gec_Server_C
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r backend/requirements.txt
+```
+
+### 4) Optional Root Node Dependencies
+
+Only needed if you use scripts depending on root `package.json`:
+
+```bash
+npm install
+```
+
 ## Environment Variables
 
 ### RAG Service Environment
@@ -78,8 +120,8 @@ Create `apps/projj/.env` or export these variables in your terminal:
 
 ```bash
 OPENAI_API_KEY="your-openai-api-key"
-GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
-GEC_INDEX_PATH="gec_rag_index"
+GEC_REPO_PATH="./apps/projj"
+GEC_INDEX_PATH="rag/index_store/gec_rag_index"
 GEC_EMBED_MODEL="text-embedding-3-small"
 GEC_CHAT_MODEL="gpt-4o-mini"
 ```
@@ -87,7 +129,7 @@ GEC_CHAT_MODEL="gpt-4o-mini"
 Important: `GEC_REPO_PATH` should point to the folder you want the RAG index to read. On this machine, use:
 
 ```bash
-GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
+GEC_REPO_PATH="./apps/projj"
 ```
 
 ### Node Backend Environment
@@ -144,12 +186,13 @@ Run each service in a separate terminal.
 ### Terminal 1: Start the RAG Service
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/projj
+cd ./apps/projj
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export OPENAI_API_KEY="your-openai-api-key"
-export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
+export GEC_REPO_PATH="./apps/projj"
+export GEC_INDEX_PATH="rag/index_store/gec_rag_index"
 python build_rag_index.py
 uvicorn rag_service:app --host 127.0.0.1 --port 8000
 ```
@@ -165,7 +208,7 @@ Expected result: JSON response saying the GEC RAG service is running.
 ### Terminal 2: Start the Action Backend
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
+cd ./apps/Gec_Server_C
 python -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
@@ -192,7 +235,7 @@ Expected result:
 This is optional, but required if the action backend `/chat` flow is using MCP tool invocation.
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
+cd ./apps/Gec_Server_C
 source .venv/bin/activate
 export UNDERLYING_REST_BASE="http://127.0.0.1:8001"
 uvicorn mcp_server:app --host 127.0.0.1 --port 8002
@@ -209,7 +252,7 @@ Expected result: JSON list of tools such as `cert_create`, `cert_transfer`, `mar
 ### Terminal 4: Start the Node Router Backend
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/projj/backend
+cd ./apps/projj/backend
 npm install
 npm run dev
 ```
@@ -222,18 +265,26 @@ curl http://127.0.0.1:3000/
 
 Expected result: JSON response from `projj-node-backend`.
 
+If port `3000` is already used on your machine:
+
+```bash
+PORT=3010 node server.js
+```
+
+Then use `http://127.0.0.1:3010/api/chat` in frontend config.
+
 ### Terminal 5: Open the Frontend
 
 The main frontend is:
 
 ```text
-/Users/umarfarooq/Github/FYP/apps/projj/frontend/pages/index.html
+./apps/projj/frontend/pages/index.html
 ```
 
 Compatibility entrypoint also exists:
 
 ```text
-/Users/umarfarooq/Github/FYP/apps/projj/index.html
+./apps/projj/index.html
 ```
 
 You can open it directly in the browser, or serve it with a local static server.
@@ -241,13 +292,13 @@ You can open it directly in the browser, or serve it with a local static server.
 Option A: open directly:
 
 ```bash
-open /Users/umarfarooq/Github/FYP/apps/projj/frontend/pages/index.html
+open ./apps/projj/frontend/pages/index.html
 ```
 
 Option B: serve with Python:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/projj
+cd ./apps/projj
 python -m http.server 5500
 ```
 
@@ -310,56 +361,56 @@ Expected behavior:
 
 ### Node Backend
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/` | Health check |
-| `POST` | `/api/chat` | Main chat route |
-| `POST` | `/api/auth/register` | Register user |
-| `POST` | `/api/auth/login` | Login user |
-| `POST` | `/api/auth/verify-otp` | Verify OTP |
-| `POST` | `/api/auth/resend-otp` | Resend OTP |
-| `GET` | `/api/auth/me` | Get logged-in user |
-| `GET` | `/api/market/stats` | Marketplace stats |
-| `POST` | `/api/market/list` | Create listing |
-| `POST` | `/api/market/request-buy` | Request buy |
-| `POST` | `/api/market/accept-buy` | Accept buy |
-| `POST` | `/api/market/cancel` | Cancel listing |
+| Method | Endpoint                  | Purpose            |
+| ------ | ------------------------- | ------------------ |
+| `GET`  | `/`                       | Health check       |
+| `POST` | `/api/chat`               | Main chat route    |
+| `POST` | `/api/auth/register`      | Register user      |
+| `POST` | `/api/auth/login`         | Login user         |
+| `POST` | `/api/auth/verify-otp`    | Verify OTP         |
+| `POST` | `/api/auth/resend-otp`    | Resend OTP         |
+| `GET`  | `/api/auth/me`            | Get logged-in user |
+| `GET`  | `/api/market/stats`       | Marketplace stats  |
+| `POST` | `/api/market/list`        | Create listing     |
+| `POST` | `/api/market/request-buy` | Request buy        |
+| `POST` | `/api/market/accept-buy`  | Accept buy         |
+| `POST` | `/api/market/cancel`      | Cancel listing     |
 
 ### RAG Service
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/` | Health check |
-| `POST` | `/chat` | Ask project/GEC question |
-| `POST` | `/build-index` | Rebuild FAISS index |
+| Method | Endpoint       | Purpose                  |
+| ------ | -------------- | ------------------------ |
+| `GET`  | `/`            | Health check             |
+| `POST` | `/chat`        | Ask project/GEC question |
+| `POST` | `/build-index` | Rebuild FAISS index      |
 
 ### Action Backend
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/` | Health check |
-| `POST` | `/chat` | Natural-language action handler |
-| `POST` | `/certificates/init` | Initialize certificate registry |
-| `POST` | `/certificates/add-issuer` | Add issuer |
-| `POST` | `/certificates/remove-issuer` | Remove issuer |
-| `POST` | `/certificates/create` | Create certificate |
-| `POST` | `/certificates/transfer` | Transfer certificate |
-| `POST` | `/certificates/claim` | Claim/retire certificate |
-| `POST` | `/certificates/cancel` | Cancel certificate |
-| `POST` | `/marketplace/init` | Initialize marketplace |
-| `POST` | `/marketplace/list` | List certificate |
-| `POST` | `/marketplace/cancel` | Cancel listing |
-| `POST` | `/marketplace/request-buy` | Request buy |
-| `POST` | `/marketplace/accept-buy` | Accept buy request |
-| `GET` | `/marketplace/{market_addr}/stats` | Get marketplace stats |
-| `POST` | `/audit/init` | Initialize audit module |
-| `POST` | `/audit/log` | Add audit log |
+| Method | Endpoint                           | Purpose                         |
+| ------ | ---------------------------------- | ------------------------------- |
+| `GET`  | `/`                                | Health check                    |
+| `POST` | `/chat`                            | Natural-language action handler |
+| `POST` | `/certificates/init`               | Initialize certificate registry |
+| `POST` | `/certificates/add-issuer`         | Add issuer                      |
+| `POST` | `/certificates/remove-issuer`      | Remove issuer                   |
+| `POST` | `/certificates/create`             | Create certificate              |
+| `POST` | `/certificates/transfer`           | Transfer certificate            |
+| `POST` | `/certificates/claim`              | Claim/retire certificate        |
+| `POST` | `/certificates/cancel`             | Cancel certificate              |
+| `POST` | `/marketplace/init`                | Initialize marketplace          |
+| `POST` | `/marketplace/list`                | List certificate                |
+| `POST` | `/marketplace/cancel`              | Cancel listing                  |
+| `POST` | `/marketplace/request-buy`         | Request buy                     |
+| `POST` | `/marketplace/accept-buy`          | Accept buy request              |
+| `GET`  | `/marketplace/{market_addr}/stats` | Get marketplace stats           |
+| `POST` | `/audit/init`                      | Initialize audit module         |
+| `POST` | `/audit/log`                       | Add audit log                   |
 
 ### MCP Proxy
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/mcp/tools` | List OpenAPI tools |
+| Method | Endpoint      | Purpose                      |
+| ------ | ------------- | ---------------------------- |
+| `GET`  | `/mcp/tools`  | List OpenAPI tools           |
 | `POST` | `/mcp/invoke` | Invoke a tool by `tool_name` |
 
 ## Common Problems
@@ -369,10 +420,11 @@ Expected behavior:
 Run:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/projj
+cd ./apps/projj
 source .venv/bin/activate
 export OPENAI_API_KEY="your-openai-api-key"
-export GEC_REPO_PATH="/Users/umarfarooq/Github/FYP/apps/projj"
+export GEC_REPO_PATH="./apps/projj"
+export GEC_INDEX_PATH="rag/index_store/gec_rag_index"
 python build_rag_index.py
 ```
 
@@ -422,7 +474,7 @@ MCP_SERVER_URL="http://127.0.0.1:8002/mcp/invoke"
 Start it from `apps/Gec_Server_C`:
 
 ```bash
-cd /Users/umarfarooq/Github/FYP/apps/Gec_Server_C
+cd ./apps/Gec_Server_C
 uvicorn mcp_server:app --host 127.0.0.1 --port 8002
 ```
 

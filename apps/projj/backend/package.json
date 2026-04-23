@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@aptos-labs/ts-sdk": "^6.1.0",
+    "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "canvas": "^3.2.1",
     "cors": "^2.8.6",
