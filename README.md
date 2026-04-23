@@ -469,3 +469,8 @@ For a full file-by-file explanation of the project, read:
 PROJECT_OVERVIEW.md
 ```
 
+For AI-agent capabilities, ownership, maturity levels, and upgrade priorities, read:
+
+```text
+AGENT_SKILLS.md
+```
