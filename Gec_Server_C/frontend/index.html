@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GEC Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f7faf5;
+      --bg-soft: #edf3e4;
+      --panel: #ffffff;
+      --panel-soft: #f9fafb;
+      --muted: #6b7280;
+      --text: #111827;
+      --border: #d4dbe0;
+      --primary: #166534;
+      --primary-2: #22c55e;
+      --accent: #e4f0d5;
+      --accent-soft: #f4f8ea;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xl: 999px;
+      --max-chat: 820px;
+      --max-input: 980px;
+
+      --mcp-card-border: #bbf7d0;
+      --mcp-card-shadow: 0 10px 30px rgba(34, 197, 94, 0.25);
+      --mcp-success: #16a34a;
+      --mcp-error: #b91c1c;
+      --mcp-soft: #ecfdf3;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(210, 230, 195, 0.8), transparent 55%),
+        radial-gradient(circle at top right, rgba(199, 224, 180, 0.7), transparent 60%),
+        linear-gradient(to bottom, #f9fafb, #f3f6ec 60%, #e5e7eb 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.5) 0,
+        rgba(255, 255, 255, 0.5) 18%,
+        transparent 18%,
+        transparent 36%
+      );
+      background-size: 260px 260px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    #root {
+      height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      backdrop-filter: blur(4px);
+    }
+
+    .sidebar {
+      width: 300px;
+      background: linear-gradient(to bottom, #fdfefb 0%, #f5f8ee 60%, #edf3e4 100%);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 3;
+      box-shadow: 6px 0 18px rgba(148, 163, 184, 0.35);
+    }
+
+    .sb-top {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(249,250,251,0.98));
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1f2937;
+    }
+
+    .brand-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #f9fff0, #86efac);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #166534;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.6);
+    }
+
+    .sb-subtitle {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .sb-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 7px 12px;
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.55);
+      background: #ffffff;
+      transform: translateY(-1px);
+      border-color: #c5d1e0;
+    }
+
+    .btn-primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #f9fafb;
+      box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #14532d, #16a34a);
+      box-shadow: 0 14px 30px rgba(22, 163, 74, 0.5);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.76rem;
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .btn-ghost:hover {
+      background: #edf2f7;
+    }
+
+    .sb-search {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      border-radius: var(--radius-xl);
+      background: #ffffff;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .sb-search span { opacity: 0.8; }
+
+    .sb-search input {
+      border: none;
+      outline: none;
+      flex: 1;
+      background: transparent;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+
+    .sb-search input::placeholder { color: #9ca3af; }
+
+    .market-card {
+      margin: 10px 14px 6px;
+      padding: 12px 12px 14px;
+      background: linear-gradient(135deg, #ffffff, #ecfdf3);
+      border-radius: 14px;
+      border: 1px solid #bbf7d0;
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.28);
+    }
+
+    .market-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: #374151;
+    }
+
+    .market-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .market-card .btn-primary {
+      width: 100%;
+      justify-content: center;
+      font-size: 0.82rem;
+      padding-block: 7px;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 14px 6px;
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .history-title {
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.72rem;
+    }
+
+    .clear-link {
+      border: none;
+      background: transparent;
+      color: #9b1c1c;
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 2px 4px;
+      border-radius: 999px;
+    }
+
+    .clear-link:hover { background: #fee2e2; }
+
+    .history {
+      padding: 4px 10px 14px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .history::-webkit-scrollbar {
+      width: 7px;
+    }
+    .history::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+
+    .conv {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 9px 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.08s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+      font-size: 0.86rem;
+    }
+
+    .conv:hover {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+    }
+
+    .conv.active {
+      background: #dcfce7;
+      border-color: #4ade80;
+      box-shadow: 0 6px 14px rgba(34, 197, 94, 0.5);
+    }
+
+    .conv-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conv-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      padding: 4px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .icon-btn:hover {
+      background: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      background: linear-gradient(to right, #ffffff, #f4f7ee);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(148, 163, 184, 0.18);
+    }
+
+    .top-left h1 {
+      font-size: 1rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .top-left p {
+      margin: 2px 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .user-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding-right: 4px;
+      border-right: 1px solid #e5e7eb;
+      margin-right: 4px;
+    }
+
+    .login-btn {
+      border-color: #22c55e;
+      color: #166534;
+      background: #f0fdf4;
+    }
+    .login-btn:hover {
+      background: #dcfce7;
+      box-shadow: 0 8px 18px rgba(34,197,94,0.4);
+    }
+
+    .logout-btn {
+      border-color: #fecaca;
+      color: #b91c1c;
+      background: #fef2f2;
+    }
+    .logout-btn:hover {
+      background: #fee2e2;
+      box-shadow: 0 8px 18px rgba(248,113,113,0.5);
+    }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 24px 16px 32px;
+    }
+
+    .hero-inner {
+      text-align: center;
+      max-width: 580px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 22px 22px 20px;
+      border: 1px solid #e0e7d3;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero-title {
+      font-weight: 700;
+      font-size: clamp(1.35rem, 2.1vw + 0.9rem, 2rem);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+      color: #374151;
+    }
+
+    .hero-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .hero-input {
+      margin: 0 auto;
+      width: min(100%, var(--max-input));
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+    }
+
+    .hero-input textarea {
+      flex: 1;
+      resize: none;
+      min-height: 48px;
+      max-height: 180px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      line-height: 1.4;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .hero-input span { font-size: 1.05rem; opacity: 0.75; }
+
+    .send-btn {
+      padding: 9px 15px;
+      border: none;
+      border-radius: 999px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: 0.12s ease;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.55);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 11px 26px rgba(22, 163, 74, 0.7);
+    }
+
+    .thread {
+      flex: 1;
+      overflow: auto;
+      padding: 20px 16px 28px;
+      display: none;
+    }
+
+    .thread-inner {
+      width: min(100%, var(--max-chat));
+      margin: 0 auto;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .row.bot { justify-content: flex-start; }
+    .row.user { justify-content: flex-end; }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #bbf7d0;
+      background: radial-gradient(circle at 25% 25%, #f0fdf4, #86efac);
+      color: #166534;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: 0 5px 14px rgba(34, 197, 94, 0.6);
+    }
+
+    .bubble-wrap {
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bubble {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 13px;
+      line-height: 1.55;
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.3);
+      word-wrap: break-word;
+      font-size: 0.92rem;
+    }
+
+    .bubble.user {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      border-color: transparent;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.7);
+    }
+
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .msg-btn {
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+    }
+
+    .msg-btn:hover {
+      background: #ecfdf3;
+      color: #166534;
+    }
+
+    .typing {
+      position: sticky;
+      bottom: 4px;
+      left: 0;
+      width: 100%;
+      display: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    .dots {
+      display: inline-flex;
+      gap: 4px;
+      margin-left: 6px;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: #9ca3af;
+      animation: bounce 0.9s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.15s; }
+    .dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 1; }
+      40% { transform: translateY(-4px); opacity: 0.9; }
+    }
+
+    .dock {
+      border-top: 1px solid #e2e8f0;
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.96), rgba(249, 250, 251, 0.98));
+      padding: 10px 10px 14px;
+      display: none;
+    }
+
+    .dock-inner {
+      width: min(100%, var(--max-input));
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 8px 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .dock textarea {
+      flex: 1;
+      resize: none;
+      min-height: 44px;
+      max-height: 180px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .dock textarea::placeholder { color: #9ca3af; }
+
+    pre {
+      background: #020617;
+      color: #e5e7eb;
+      padding: 10px 12px;
+      border-radius: 10px;
+      overflow: auto;
+      font-size: 0.8rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.84em;
+    }
+
+    ul, ol {
+      padding-left: 1.2rem;
+      margin: 0.3rem 0;
+    }
+
+    blockquote {
+      border-left: 3px solid #e5e7eb;
+      margin: 6px 0;
+      padding: 6px 10px;
+      color: #4b5563;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .marketplace {
+      flex: 1;
+      padding: 18px 18px 24px;
+      display: none;
+      overflow: auto;
+    }
+
+    .market-inner {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .market-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .market-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .market-header p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .pill-soft {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #ecfccb;
+      border: 1px solid #bef264;
+      font-size: 0.75rem;
+      color: #3f6212;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .offer-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      padding: 12px 12px 11px;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .offer-title { font-weight: 600; font-size: 0.9rem; color: #111827; }
+    .offer-meta { font-size: 0.8rem; color: #6b7280; }
+
+    .offer-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .tag.green { background: #dcfce7; color: #166534; }
+
+    .offer-footer {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .offer-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #f9fafb;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(22, 163, 74, 0.6);
+    }
+
+    .offer-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(22, 163, 74, 0.75);
+    }
+
+    .registry {
+      flex: 1;
+      padding: 18px 18px 24px;
+      display: none;
+      overflow: auto;
+    }
+
+    .registry-inner {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .reg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .reg-header-left h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .reg-header-left p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .reg-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin: 12px 0 14px;
+    }
+
+    .reg-summary-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 6px 14px rgba(148, 163, 184, 0.25);
+    }
+
+    .reg-summary-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .reg-summary-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    .reg-summary-sub {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .reg-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      font-size: 0.8rem;
+    }
+
+    .reg-filters label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .reg-select {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 4px 9px;
+      font-size: 0.8rem;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .reg-section {
+      margin-top: 12px;
+    }
+
+    .reg-section h3 {
+      margin: 0 0 6px;
+      font-size: 0.9rem;
+    }
+
+    .reg-section-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .reg-holdings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .reg-holding-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      padding: 10px 11px;
+      box-shadow: 0 6px 14px rgba(148, 163, 184, 0.3);
+      font-size: 0.8rem;
+    }
+
+    .reg-holding-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .reg-holding-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .reg-status-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid #bbf7d0;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .reg-timeline-list {
+      margin-top: 4px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 6px 8px;
+      max-height: 260px;
+      overflow: auto;
+      font-size: 0.8rem;
+    }
+
+    .reg-tx-row {
+      display: grid;
+      grid-template-columns: 80px 90px 1fr;
+      gap: 6px;
+      padding: 5px 3px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .reg-tx-row:last-child {
+      border-bottom: none;
+    }
+
+    .reg-tx-time {
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    .reg-tx-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      white-space: nowrap;
+    }
+
+    .reg-tx-pill.transfer {
+      background: #dbeafe;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .reg-tx-pill.retire {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+
+    .reg-tx-pill.fail {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+
+    .reg-tx-main {
+      font-size: 0.8rem;
+    }
+
+    .reg-tx-main span {
+      margin-right: 6px;
+    }
+
+    .reg-rejected-list {
+      margin-top: 4px;
+      border-radius: 10px;
+      border: 1px solid #fee2e2;
+      background: #fef2f2;
+      padding: 6px 8px;
+      max-height: 160px;
+      overflow: auto;
+      font-size: 0.78rem;
+    }
+
+    .reg-rejected-item {
+      padding: 4px 0;
+      border-bottom: 1px dashed #fecaca;
+    }
+
+    .reg-rejected-item:last-child {
+      border-bottom: none;
+    }
+
+    .reg-rejected-time {
+      font-size: 0.72rem;
+      color: #9f1239;
+    }
+
+    .reg-rejected-reason {
+      font-size: 0.75rem;
+      color: #b91c1c;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .hero-inner { box-shadow: none; border-radius: 18px; }
+      .hero-input, .dock-inner { width: 96%; }
+      .reg-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .mcp-card{
+      background:#ffffff;
+      border-radius:14px;
+      padding:14px 14px 10px;
+      box-shadow: var(--mcp-card-shadow);
+      border:1px solid var(--mcp-card-border);
+      font-size:13px;
+      position:relative;
+      overflow:hidden;
+      margin-top: 4px;
+    }
+    .mcp-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      border-top:3px solid rgba(34,197,94,0.7);
+      pointer-events:none;
+    }
+    .mcp-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      font-weight:600;
+    }
+    .mcp-header-left{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .mcp-header-icon{
+      width:22px;
+      height:22px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      background:#dcfce7;
+      color:#166534;
+    }
+    .mcp-header-title{
+      font-size:13px;
+    }
+    .mcp-header.success .mcp-header-title{
+      color:var(--mcp-success);
+    }
+    .mcp-header.error .mcp-header-title{
+      color:var(--mcp-error);
+    }
+    .mcp-tag{
+      font-size:11px;
+      padding:3px 9px;
+      border-radius:999px;
+      background:#ecfdf3;
+      color:#166534;
+      border:1px solid #bbf7d0;
+    }
+    .mcp-main-row{
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      margin-bottom:10px;
+      margin-top:2px;
+    }
+    .mcp-primary-number{
+      font-size:26px;
+      font-weight:700;
+      color:#065f46;
+    }
+    .mcp-primary-label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      color:var(--muted);
+    }
+    .mcp-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:8px 18px;
+      margin-bottom:8px;
+    }
+    .mcp-field-label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:var(--muted);
+    }
+    .mcp-field-value{
+      font-size:13px;
+      font-weight:600;
+    }
+    .mcp-footer{
+      margin-top:6px;
+      padding-top:6px;
+      border-top:1px dashed #e5e7eb;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .mcp-badge-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+    }
+    .mcp-badge{
+      font-size:11px;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+    }
+    .mcp-balance-list{
+      margin-top:4px;
+      border-radius:9px;
+      border:1px solid #e5e7eb;
+      padding:6px 8px;
+      max-height:160px;
+      overflow:auto;
+      background:#f9fafb;
+    }
+    .mcp-balance-item{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      padding:4px 0;
+    }
+    .mcp-balance-item span.key{
+      color:var(--muted);
+    }
+    .mcp-balance-item span.val{
+      font-weight:600;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal {
+      width: min(92vw, 460px);
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      padding: 18px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #6b7280;
+    }
+
+    .modal-body {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .modal-field {
+      margin-bottom: 10px;
+    }
+
+    .modal-label {
+      font-size: 0.78rem;
+      color: #4b5563;
+      margin-bottom: 4px;
+    }
+
+    .modal-input,
+    .modal-select {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      outline: none;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sb-top">
+          <div class="brand">
+            <span class="brand-badge">G</span>
+            <span>GEC Assistant</span>
+          </div>
+          <div class="sb-subtitle">Chatbot for Green Energy Certificates</div>
+          <div class="sb-actions">
+            <button class="btn btn-primary" id="btn-new-chat">
+              ＋ New chat
+            </button>
+          </div>
+          <div class="sb-search">
+            <span>🔎</span>
+            <input id="search-input" placeholder="Search chats…" />
+          </div>
+        </div>
+
+        <div class="market-card">
+          <div class="market-title">Marketplace</div>
+          <p class="market-text">
+            Prototype marketplace for trading and retiring GECs between issuers and consumers.
+          </p>
+          <button class="btn btn-primary" id="btn-open-marketplace">
+            Open marketplace
+          </button>
+        </div>
+
+        <div class="market-card">
+          <div class="market-title">Registry & Activity</div>
+          <p class="market-text">
+            See all GECs that were issued, transferred and retired via this assistant.
+          </p>
+          <button class="btn btn-primary" id="btn-open-registry">
+            Open registry
+          </button>
+        </div>
+
+        <div class="history-header">
+          <span class="history-title">History</span>
+          <button class="clear-link" id="btn-clear-all">
+            Clear all
+          </button>
+        </div>
+
+        <div class="history" id="history-list"></div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="top-left">
+            <h1 id="topbar-title">New chat</h1>
+            <p>Ask about certificates, issuance, transfer, retirement…</p>
+          </div>
+          <div class="user-controls">
+            <span class="user-label" id="user-label">
+              Guest
+            </span>
+            <button class="btn btn-sm login-btn" id="btn-login">
+              Login
+            </button>
+            <button class="btn btn-sm logout-btn" id="btn-logout" style="display:none;">
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <section class="hero" id="hero-section">
+          <div class="hero-inner">
+            <div class="hero-title">Where should we begin?</div>
+            <div class="hero-subtitle">
+              Your domain assistant for the GEC registry – ask about flows, roles, RAG docs or certificates.
+            </div>
+            <div class="hero-input">
+              <span>＋</span>
+              <textarea
+                rows="1"
+                placeholder="Ask anything about GEC"
+                id="hero-input"
+              ></textarea>
+              <button class="send-btn" id="hero-send-btn">
+                ➤
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="thread" id="thread-section">
+          <div class="thread-inner" id="thread-inner"></div>
+        </section>
+
+        <section class="marketplace" id="market-section">
+          <div class="market-inner">
+            <div class="market-header">
+              <div>
+                <h2>GEC Marketplace (Prototype)</h2>
+                <p>
+                  This interface represents how generator and buyer can publish, discover,
+                  trade, and retire Green Energy Certificates in your platform.
+                </p>
+              </div>
+              <button class="btn btn-sm" id="btn-back-to-chat">
+                ← Back to assistant
+              </button>
+            </div>
+
+            <div class="pill-soft">
+              <span>🪙</span>
+              <span>
+                Trading of certificates is simulated for FYP design – no real blockchain
+                transactions yet.
+              </span>
+            </div>
+
+            <div style="margin-top: 14px; font-size: 0.86rem; color: var(--muted);">
+              In your final system, this page will connect to APIs like
+              <strong>/api/certificates</strong>,
+              <strong>/api/certificates/issue</strong>,
+              <strong>/api/certificates/transfer</strong>, and
+              <strong>/api/certificates/retire</strong>.
+            </div>
+
+            <div class="market-grid">
+              <div class="offer-card">
+                <div class="offer-title">Solar GEC – 50 MWh</div>
+                <div class="offer-meta">Origin: 10 MW Solar Plant – Punjab</div>
+                <div class="offer-tags">
+                  <span class="tag green">Solar</span>
+                  <span class="tag">Vintage: 2025 Q1</span>
+                  <span class="tag">Status: Available</span>
+                </div>
+                <div class="offer-footer">
+                  <span>Price: (to be defined in backend)</span>
+                  <button class="offer-btn" type="button">
+                    View details
+                  </button>
+                </div>
+              </div>
+
+              <div class="offer-card">
+                <div class="offer-title">Wind GEC – 30 MWh</div>
+                <div class="offer-meta">Origin: 50 MW Wind Farm – Sindh</div>
+                <div class="offer-tags">
+                  <span class="tag green">Wind</span>
+                  <span class="tag">Vintage: 2024 Q4</span>
+                  <span class="tag">Status: Available</span>
+                </div>
+                <div class="offer-footer">
+                  <span>Ideal for corporate buyers</span>
+                  <button class="offer-btn" type="button">
+                    View details
+                  </button>
+                </div>
+              </div>
+
+              <div class="offer-card">
+                <div class="offer-title">Retired GEC – 10 MWh</div>
+                <div class="offer-meta">Retired by: Consumer Account #123</div>
+                <div class="offer-tags">
+                  <span class="tag">Solar</span>
+                  <span class="tag">Purpose: Sustainability report</span>
+                  <span class="tag">Status: Retired</span>
+                </div>
+                <div class="offer-footer">
+                  <span>Audit trail stored in registry</span>
+                  <button
+                    class="offer-btn"
+                    type="button"
+                    disabled
+                    style="opacity: 0.5; box-shadow: none; cursor: default;"
+                  >
+                    Retired
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="registry" id="registry-section">
+          <div class="registry-inner">
+            <div class="reg-header">
+              <div class="reg-header-left">
+                <h2>GEC Registry & Activity</h2>
+                <p>
+                  Audit-friendly view of all GECs issued, transferred and retired using the GEC Assistant (this session).
+                </p>
+              </div>
+              <button class="btn btn-sm" id="btn-reg-back-chat">
+                ← Back to assistant
+              </button>
+            </div>
+
+            <div class="reg-filters">
+              <label for="reg-account-filter">Account:&nbsp;</label>
+              <select id="reg-account-filter" class="reg-select">
+                <option value="ALL">All accounts</option>
+              </select>
+              <span style="color:#9ca3af;">|</span>
+              <span style="color:#6b7280;">Data is computed from MCP operations triggered via chat (session-only, not global DB).</span>
+            </div>
+
+            <div class="reg-summary-grid" id="registry-summary"></div>
+
+            <div class="reg-section">
+              <h3>Per-account holdings (session)</h3>
+              <div class="reg-section-sub">
+                Net GEC balance per account = Issued + Received − Sent − Retired (based on this assistant’s operations).
+              </div>
+              <div class="reg-holdings-grid" id="registry-holdings"></div>
+            </div>
+
+            <div class="reg-section" style="margin-top:16px;">
+              <h3>Transaction timeline</h3>
+              <div class="reg-section-sub">
+                Chronological log of issue, transfer, retire and tx-result operations coming back as MCP results.
+              </div>
+              <div class="reg-timeline-list" id="registry-timeline"></div>
+            </div>
+
+            <div class="reg-section" style="margin-top:16px;">
+              <h3>Rejected / incomplete commands</h3>
+              <div class="reg-section-sub">
+                Commands that were blocked because mandatory fields were missing or tx execution failed.
+              </div>
+              <div class="reg-rejected-list" id="registry-rejected"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="dock" id="dock">
+          <div class="dock-inner">
+            <textarea
+              rows="1"
+              placeholder="Write your message…"
+              id="dock-input"
+            ></textarea>
+            <button class="send-btn" id="dock-send-btn">
+              Send ➤
+            </button>
+          </div>
+        </div>
+
+        <div class="typing" id="typing-indicator" style="display: none;">
+          GEC Assistant is typing
+          <span class="dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </span>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="login-modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Login</h3>
+        <button class="modal-close" id="login-modal-close">
+          ✕
+        </button>
+      </div>
+      <div class="modal-body">
+        Demo login simulating SSI-based identity. In the real backend, the DID and
+        credential would be verified cryptographically.
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Name</div>
+        <input
+          class="modal-input"
+          id="login-name"
+          placeholder="e.g. Amina Ansar"
+        />
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Role</div>
+        <select
+          class="modal-select"
+          id="login-role"
+        >
+          <option value="issuer">Generator</option>
+          <option value="consumer">Buyer</option>
+          <option value="registry_admin">Trader</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">DID</div>
+        <input
+          class="modal-input"
+          id="login-did"
+          placeholder="e.g. did:gec:amina-123"
+        />
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-ghost" id="login-cancel">
+          Cancel
+        </button>
+        <button class="btn btn-sm btn-primary" id="login-submit">
+          Login
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************** CONFIG ***************/
+    const API_URL = "http://127.0.0.1:8000/chat";
+    const AUTH_SSI_URL = "http://127.0.0.1:3000/api/auth/ssi-login";
+
+    const STORAGE_KEY = "gec_chat_conversations_plain_v1";
+    const USER_KEY = "gecUser_plain";
+    const TOKEN_KEY = "gecToken_plain";
+
+    /*************** STATE ***************/
+    const state = {
+      conversations: [],
+      currentId: null,
+      view: "chat",
+      user: null,
+      token: null,
+      lastUserMessage: "",
+      isTyping: false,
+      search: "",
+      registry: {
+        accounts: {},
+        txs: [],
+        rejected: []
+      }
+    };
+
+    /*************** HELPERS ***************/
+    function nowTime() {
+      return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function genId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.conversations)) {
+          state.conversations = parsed.conversations;
+          state.currentId = parsed.currentId || null;
+        }
+      } catch (e) {
+        console.error("Failed to load conversations:", e);
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ conversations: state.conversations, currentId: state.currentId })
+        );
+      } catch (e) {
+        console.error("Failed to save conversations:", e);
+      }
+    }
+
+    function loadUser() {
+      try {
+        const raw = localStorage.getItem(USER_KEY);
+        if (raw) {
+          state.user = JSON.parse(raw);
+        }
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+          state.token = token;
+        }
+      } catch (e) {
+        console.error("Failed to load user:", e);
+      }
+    }
+
+    function saveUser() {
+      try {
+        if (state.user) {
+          localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+        } else {
+          localStorage.removeItem(USER_KEY);
+        }
+        if (state.token) {
+          localStorage.setItem(TOKEN_KEY, state.token);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
+      } catch (e) {
+        console.error("Failed to save user:", e);
+      }
+    }
+
+    function markdownToHtml(text) {
+      if (!text) return "";
+      let s = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      s = s.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+      s = s.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+      s = s.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+      s = s.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      s = s.replace(/\*(.*?)\*/g, "<em>$1</em>");
+      s = s.replace(/^> (.*)$/gm, "<blockquote>$1</blockquote>");
+      s = s.replace(/^\s*[-•] (.*)$/gm, "<li>$1</li>");
+      s = s.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+      s = s.replace(/\n{2,}/g, "</p><p>");
+
+      return "<p>" + s + "</p>";
+    }
+
+    function getActiveConversation() {
+      return state.conversations.find(c => c.id === state.currentId) || null;
+    }
+
+    function hasUserMessage(conv) {
+      return conv && conv.messages && conv.messages.some(m => m.sender === "user");
+    }
+
+    /*************** REGISTRY HELPERS ***************/
+    function ensureRegistryAccount(id) {
+      const key = id || "unknown";
+      if (!state.registry.accounts[key]) {
+        state.registry.accounts[key] = {
+          accountId: key,
+          balance: 0,
+          issued: 0,
+          received: 0,
+          sent: 0,
+          retired: 0
+        };
+      }
+      return state.registry.accounts[key];
+    }
+
+    function addRegistryTx(entry) {
+      state.registry.txs.push({
+        time: nowTime(),
+        ...entry
+      });
+    }
+
+    function registerRejected(prompt, reason) {
+      state.registry.rejected.push({
+        time: nowTime(),
+        prompt: prompt || "(empty prompt)",
+        reason: reason || "Unknown reason"
+      });
+    }
+
+    function updateRegistryFromMcp(body, prompt) {
+      if (!body || typeof body !== "object") return;
+
+      // Real Aptos tx response support
+      if ("tx_hash" in body || "success" in body || "vm_status" in body) {
+        const ok = body.success === true;
+        if (!ok) {
+          registerRejected(prompt, body.vm_status || "Transaction failed");
+          addRegistryTx({
+            action: "failed",
+            quantity: 0,
+            from: "—",
+            to: "—",
+            deviceId: "—",
+            energySource: "—",
+            status: "Failed",
+            prompt
+          });
+          return;
+        }
+
+        const lowerPrompt = (prompt || "").toLowerCase();
+
+        if (lowerPrompt.includes("issue") || lowerPrompt.includes("create gec") || lowerPrompt.includes("mint")) {
+          const qtyMatch = lowerPrompt.match(/\b(\d+)\b/);
+          const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 0;
+          const source = ["solar", "wind", "hydro", "biomass", "geothermal", "thermal"]
+            .find(x => lowerPrompt.includes(x)) || "unknown";
+          const acc = "0xc8c1214..."; // UI-only summary placeholder
+          const account = ensureRegistryAccount(acc);
+          account.balance += qty;
+          account.issued += qty;
+
+          addRegistryTx({
+            action: "issue",
+            quantity: qty,
+            from: "Registry",
+            to: acc,
+            deviceId: "device-demo",
+            energySource: source,
+            status: "Completed",
+            prompt
+          });
+        } else if (lowerPrompt.includes("claim") || lowerPrompt.includes("retire")) {
+          addRegistryTx({
+            action: "retire",
+            quantity: 0,
+            from: "Owner",
+            to: "Retired",
+            deviceId: "—",
+            energySource: "—",
+            status: "Completed",
+            prompt
+          });
+        } else if (lowerPrompt.includes("transfer")) {
+          addRegistryTx({
+            action: "transfer",
+            quantity: 0,
+            from: "Owner",
+            to: "Recipient",
+            deviceId: "—",
+            energySource: "—",
+            status: "Completed",
+            prompt
+          });
+        } else {
+          addRegistryTx({
+            action: "tx",
+            quantity: 0,
+            from: "—",
+            to: "—",
+            deviceId: "—",
+            energySource: "—",
+            status: "Completed",
+            prompt
+          });
+        }
+        return;
+      }
+
+      // Old mock/custom MCP response support
+      const action = body.action || "";
+      const status = body.status || "";
+      if (status !== "success") {
+        registerRejected(prompt, body.message || body.detail || "MCP operation failed.");
+        return;
+      }
+
+      const qRaw =
+        body.issued_quantity ??
+        body.transferred_quantity ??
+        body.retired_quantity ??
+        body.quantity;
+      const q = typeof qRaw === "number" ? qRaw : parseInt(qRaw || "0", 10) || 0;
+
+      if (action === "issue_gecs") {
+        const accId = body.account_id || "unknown";
+        const acc = ensureRegistryAccount(accId);
+        acc.balance += q;
+        acc.issued += q;
+
+        addRegistryTx({
+          action: "issue",
+          quantity: q,
+          from: "Registry",
+          to: accId,
+          deviceId: body.device_id || "—",
+          energySource: body.energy_source || "—",
+          status: "Completed",
+          prompt
+        });
+      } else if (action === "transfer_gecs") {
+        const fromId = body.source_account_id || "unknown";
+        const toId = body.target_account_id || "unknown";
+        const fromAcc = ensureRegistryAccount(fromId);
+        const toAcc = ensureRegistryAccount(toId);
+        fromAcc.balance = Math.max(0, fromAcc.balance - q);
+        fromAcc.sent += q;
+        toAcc.balance += q;
+        toAcc.received += q;
+
+        addRegistryTx({
+          action: "transfer",
+          quantity: q,
+          from: fromId,
+          to: toId,
+          deviceId: "—",
+          energySource: "—",
+          status: "Completed",
+          prompt
+        });
+      } else if (action === "retire_gecs" || action === "cancel_gecs") {
+        const accId = body.account_id || "unknown";
+        const acc = ensureRegistryAccount(accId);
+        acc.balance = Math.max(0, acc.balance - q);
+        acc.retired += q;
+
+        addRegistryTx({
+          action: "retire",
+          quantity: q,
+          from: accId,
+          to: "Retired",
+          deviceId: "—",
+          energySource: "—",
+          status: "Completed",
+          prompt
+        });
+      } else if (action === "query_gecs") {
+        addRegistryTx({
+          action: "query",
+          quantity: 0,
+          from: "—",
+          to: "—",
+          deviceId: "—",
+          energySource: "—",
+          status: "Completed",
+          prompt
+        });
+      }
+    }
+
+    /*************** MCP RESULT -> GREEN HTML CARD ***************/
+    function formatMcpBodyHtml(body) {
+      if (!body || typeof body !== "object") {
+        return `<div class="mcp-card">
+          <div class="mcp-header error">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">⚠️</div>
+              <div class="mcp-header-title">Unknown MCP Response</div>
+            </div>
+            <span class="mcp-tag">MCP</span>
+          </div>
+          <div>Empty or invalid response.</div>
+        </div>`;
+      }
+
+      // Real Aptos tx response
+      if ("tx_hash" in body || "success" in body || "vm_status" in body) {
+        const ok = body.success === true;
+        const txHash = body.tx_hash || "—";
+        const vmStatus = body.vm_status || (ok ? "Executed successfully" : "Execution failed");
+        const explorerUrl = body.explorer_url || "";
+
+        return `
+        <div class="mcp-card">
+          <div class="mcp-header ${ok ? "success" : "error"}">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">${ok ? "✅" : "⚠️"}</div>
+              <div class="mcp-header-title">${ok ? "Blockchain Transaction Successful" : "Blockchain Transaction Failed"}</div>
+            </div>
+            <span class="mcp-tag">APTOS TX</span>
+          </div>
+          <div class="mcp-main-row">
+            <div class="mcp-primary-label">Transaction status</div>
+            <div class="mcp-primary-number" style="font-size:18px;">${ok ? "Success" : "Failed"}</div>
+          </div>
+          <div class="mcp-grid">
+            <div style="grid-column: span 3;">
+              <div class="mcp-field-label">Transaction Hash</div>
+              <div class="mcp-field-value" style="word-break: break-all;">${txHash}</div>
+            </div>
+          </div>
+          <div class="mcp-grid">
+            <div style="grid-column: span 3;">
+              <div class="mcp-field-label">VM Status</div>
+              <div class="mcp-field-value">${vmStatus}</div>
+            </div>
+          </div>
+          <div class="mcp-footer">
+            ${
+              explorerUrl
+                ? `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Aptos Explorer ↗</a>`
+                : "No explorer link available."
+            }
+          </div>
+        </div>`;
+      }
+
+      // Old mock/custom format
+      const action = body.action || "";
+      const status = body.status || "";
+      const msg = body.message || "";
+      const isSuccess = status === "success";
+
+      if (!isSuccess) {
+        const detail = body.detail || msg || "MCP call failed.";
+        return `<div class="mcp-card">
+          <div class="mcp-header error">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">⚠️</div>
+              <div class="mcp-header-title">Operation Failed</div>
+            </div>
+            <span class="mcp-tag">${action || "MCP"}</span>
+          </div>
+          <div>${detail}</div>
+        </div>`;
+      }
+
+      if (action === "issue_gecs") {
+        const q   = body.issued_quantity ?? body.quantity ?? "?";
+        const acc = body.account_id || "—";
+        const dev = body.device_id  || "—";
+        const src = body.energy_source || "—";
+        const from = body.time_window?.from || "Not specified";
+        const to   = body.time_window?.to   || "Not specified";
+
+        return `
+        <div class="mcp-card">
+          <div class="mcp-header success">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">⚡</div>
+              <div class="mcp-header-title">GECs Issued</div>
+            </div>
+            <span class="mcp-tag">issue_gecs</span>
+          </div>
+          <div class="mcp-main-row">
+            <div class="mcp-primary-number">${q}</div>
+            <div class="mcp-primary-label">GECs issued</div>
+          </div>
+          <div class="mcp-grid">
+            <div>
+              <div class="mcp-field-label">Device ID</div>
+              <div class="mcp-field-value">${dev}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Energy Source</div>
+              <div class="mcp-field-value">${src}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Account ID</div>
+              <div class="mcp-field-value">${acc}</div>
+            </div>
+          </div>
+          <div class="mcp-grid">
+            <div>
+              <div class="mcp-field-label">Time From</div>
+              <div class="mcp-field-value">${from}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Time To</div>
+              <div class="mcp-field-value">${to}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Status</div>
+              <div class="mcp-field-value">Completed</div>
+            </div>
+          </div>
+          <div class="mcp-footer">
+            <div>${msg || "GECs have been successfully created for this device and account."}</div>
+            <div class="mcp-badge-row">
+              <div class="mcp-badge">Device: ${dev}</div>
+              <div class="mcp-badge">Source: ${src}</div>
+              <div class="mcp-badge">Account: ${acc}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      if (action === "transfer_gecs") {
+        const q    = body.transferred_quantity ?? body.quantity ?? "?";
+        const from = body.source_account_id || "—";
+        const to   = body.target_account_id || "—";
+
+        return `
+        <div class="mcp-card">
+          <div class="mcp-header success">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">🔁</div>
+              <div class="mcp-header-title">GECs Transferred</div>
+            </div>
+            <span class="mcp-tag">transfer_gecs</span>
+          </div>
+          <div class="mcp-main-row">
+            <div class="mcp-primary-number">${q}</div>
+            <div class="mcp-primary-label">GECs moved</div>
+          </div>
+          <div class="mcp-grid">
+            <div>
+              <div class="mcp-field-label">Source Account</div>
+              <div class="mcp-field-value">${from}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Target Account</div>
+              <div class="mcp-field-value">${to}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Status</div>
+              <div class="mcp-field-value">Completed</div>
+            </div>
+          </div>
+          <div class="mcp-footer">
+            <div>${msg || "Certificates have been moved between accounts."}</div>
+            <div class="mcp-badge-row">
+              <div class="mcp-badge">From: ${from}</div>
+              <div class="mcp-badge">To: ${to}</div>
+              <div class="mcp-badge">Quantity: ${q}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      if (action === "retire_gecs" || action === "cancel_gecs") {
+        const q   = body.retired_quantity ?? body.quantity ?? "?";
+        const acc = body.account_id || "—";
+        const reason = body.reason || "Not provided";
+
+        return `
+        <div class="mcp-card">
+          <div class="mcp-header success">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">🪪</div>
+              <div class="mcp-header-title">GECs Retired</div>
+            </div>
+            <span class="mcp-tag">${action}</span>
+          </div>
+          <div class="mcp-main-row">
+            <div class="mcp-primary-number">${q}</div>
+            <div class="mcp-primary-label">GECs removed</div>
+          </div>
+          <div class="mcp-grid">
+            <div>
+              <div class="mcp-field-label">Account ID</div>
+              <div class="mcp-field-value">${acc}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Reason</div>
+              <div class="mcp-field-value">${reason}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Status</div>
+              <div class="mcp-field-value">Retired</div>
+            </div>
+          </div>
+          <div class="mcp-footer">
+            <div>${msg || "These certificates can no longer be transferred or traded."}</div>
+            <div class="mcp-badge-row">
+              <div class="mcp-badge">Account: ${acc}</div>
+              <div class="mcp-badge">Quantity: ${q}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      if (action === "query_gecs") {
+        const results = Array.isArray(body.results) ? body.results : [];
+        if (results.length === 0) {
+          return `
+          <div class="mcp-card">
+            <div class="mcp-header success">
+              <div class="mcp-header-left">
+                <div class="mcp-header-icon">📊</div>
+                <div class="mcp-header-title">GEC Balance</div>
+              </div>
+              <span class="mcp-tag">query_gecs</span>
+            </div>
+            <div>No GEC bundles found for this account or filter.</div>
+          </div>`;
+        }
+
+        let totalQty = 0;
+        let accountId = "—";
+        const itemsHtml = results.map((r, idx) => {
+          const q = typeof r.quantity === "number" ? r.quantity : 0;
+          totalQty += q;
+          accountId = r.account_id || accountId;
+          const src = r.energy_source || "—";
+          const dev = r.device_id || "—";
+          return `
+            <div class="mcp-balance-item">
+              <span class="key">Bundle ${idx + 1} – ${src}, Device ${dev}</span>
+              <span class="val">${q} GECs</span>
+            </div>`;
+        }).join("");
+
+        return `
+        <div class="mcp-card">
+          <div class="mcp-header success">
+            <div class="mcp-header-left">
+              <div class="mcp-header-icon">📊</div>
+              <div class="mcp-header-title">GEC Balance</div>
+            </div>
+            <span class="mcp-tag">query_gecs</span>
+          </div>
+          <div class="mcp-main-row">
+            <div class="mcp-primary-number">${totalQty}</div>
+            <div class="mcp-primary-label">Total GECs (approx)</div>
+          </div>
+          <div class="mcp-grid">
+            <div>
+              <div class="mcp-field-label">Account ID</div>
+              <div class="mcp-field-value">${accountId}</div>
+            </div>
+            <div>
+              <div class="mcp-field-label">Bundles</div>
+              <div class="mcp-field-value">${results.length}</div>
+            </div>
+            <div></div>
+          </div>
+          <div class="mcp-balance-list">
+            ${itemsHtml}
+          </div>
+          <div class="mcp-footer">
+            <div>${msg || "Breakdown of GEC bundles matched by your query."}</div>
+          </div>
+        </div>`;
+      }
+
+      return `
+      <div class="mcp-card">
+        <div class="mcp-header success">
+          <div class="mcp-header-left">
+            <div class="mcp-header-icon">ℹ️</div>
+            <div class="mcp-header-title">MCP Result</div>
+          </div>
+          <span class="mcp-tag">${action || "MCP"}</span>
+        </div>
+        <pre style="font-size:11px; white-space:pre-wrap; margin:0;">${JSON.stringify(body, null, 2)}</pre>
+      </div>`;
+    }
+
+    /*************** RENDERING ***************/
+    function renderHistory() {
+      const historyEl = document.getElementById("history-list");
+      historyEl.innerHTML = "";
+      const q = (state.search || "").toLowerCase();
+
+      const visible = state.conversations.filter(c =>
+        hasUserMessage(c) &&
+        (c.title || "").toLowerCase().includes(q)
+      );
+
+      if (visible.length === 0) {
+        historyEl.innerHTML = '<div style="color:#9ca3af;font-size:.86rem;padding:8px 6px;">No chats yet. Start a new conversation.</div>';
+        return;
+      }
+
+      visible.forEach(conv => {
+        const div = document.createElement("div");
+        div.className = "conv" + (conv.id === state.currentId ? " active" : "");
+        div.innerHTML = `
+          <div class="conv-title">${conv.title || "New chat"}</div>
+          <div class="conv-actions">
+            <button class="icon-btn" title="Delete">🗑</button>
+          </div>
+        `;
+        const deleteBtn = div.querySelector(".icon-btn");
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          handleDeleteConversation(conv.id);
+        });
+        div.addEventListener("click", () => {
+          state.currentId = conv.id;
+          state.view = "chat";
+          saveToStorage();
+          renderAll();
+        });
+        historyEl.appendChild(div);
+      });
+    }
+
+    function renderTopbar() {
+      const active = getActiveConversation();
+      const titleEl = document.getElementById("topbar-title");
+      const subtitleEl = document.querySelector(".top-left p");
+
+      if (state.view === "market") {
+        titleEl.textContent = "GEC Marketplace";
+        if (subtitleEl) {
+          subtitleEl.textContent =
+            "Prototype interface for discovering and trading GEC offers.";
+        }
+      } else if (state.view === "registry") {
+        titleEl.textContent = "GEC Registry & Activity";
+        if (subtitleEl) {
+          subtitleEl.textContent =
+            "Audit trail of all GEC issuance, transfer and retirement operations (this session).";
+        }
+      } else {
+        titleEl.textContent =
+          active && hasUserMessage(active) ? active.title || "New chat" : "New chat";
+        if (subtitleEl) {
+          subtitleEl.textContent =
+            "Ask about certificates, issuance, transfer, retirement…";
+        }
+      }
+
+      const userLabel = document.getElementById("user-label");
+      const loginBtn = document.getElementById("btn-login");
+      const logoutBtn = document.getElementById("btn-logout");
+
+      if (state.user) {
+        userLabel.textContent =
+          (state.user.name || state.user.id) + " (" + (state.user.role || "unknown") + ")";
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-flex";
+      } else {
+        userLabel.textContent = "Guest";
+        loginBtn.style.display = "inline-flex";
+        logoutBtn.style.display = "none";
+      }
+    }
+
+    function renderRegistry() {
+      const summaryEl = document.getElementById("registry-summary");
+      const holdingsEl = document.getElementById("registry-holdings");
+      const timelineEl = document.getElementById("registry-timeline");
+      const rejectedEl = document.getElementById("registry-rejected");
+      const accountFilterEl = document.getElementById("reg-account-filter");
+      if (!summaryEl || !holdingsEl || !timelineEl || !rejectedEl || !accountFilterEl) return;
+
+      const accounts = Object.values(state.registry.accounts);
+      const totalIssued = accounts.reduce((s,a)=>s+a.issued,0);
+      const totalRetired = accounts.reduce((s,a)=>s+a.retired,0);
+      const totalBalance = accounts.reduce((s,a)=>s+a.balance,0);
+
+      summaryEl.innerHTML = `
+        <div class="reg-summary-card">
+          <div class="reg-summary-label">Total issued</div>
+          <div class="reg-summary-value">${totalIssued}</div>
+          <div class="reg-summary-sub">GECs issued via chat</div>
+        </div>
+        <div class="reg-summary-card">
+          <div class="reg-summary-label">Active balance</div>
+          <div class="reg-summary-value">${totalBalance}</div>
+          <div class="reg-summary-sub">Net GECs (not retired)</div>
+        </div>
+        <div class="reg-summary-card">
+          <div class="reg-summary-label">Retired</div>
+          <div class="reg-summary-value">${totalRetired}</div>
+          <div class="reg-summary-sub">Removed from trading</div>
+        </div>
+        <div class="reg-summary-card">
+          <div class="reg-summary-label">Accounts touched</div>
+          <div class="reg-summary-value">${accounts.length}</div>
+          <div class="reg-summary-sub">Seen in this session</div>
+        </div>
+      `;
+
+      const currentVal = accountFilterEl.value;
+      const opts = ["ALL", ...accounts.map(a=>a.accountId)];
+      accountFilterEl.innerHTML = opts.map(v => {
+        const label = v === "ALL" ? "All accounts" : v;
+        const sel = v === currentVal ? "selected" : "";
+        return `<option value="${v}" ${sel}>${label}</option>`;
+      }).join("");
+      const filterAcc = accountFilterEl.value || "ALL";
+
+      const filteredAccounts = accounts.filter(a =>
+        filterAcc === "ALL" ? true : a.accountId === filterAcc
+      );
+
+      if (filteredAccounts.length === 0) {
+        holdingsEl.innerHTML =
+          '<div style="font-size:0.8rem;color:#6b7280;">No holdings yet. Once you issue / transfer / retire GECs via chat, they will appear here.</div>';
+      } else {
+        holdingsEl.innerHTML = filteredAccounts.map(a => {
+          const statusText = a.balance > 0 ? "Active" : "Zero balance";
+          return `
+            <div class="reg-holding-card">
+              <div class="reg-holding-header">
+                <div class="reg-holding-title">Account ${a.accountId}</div>
+                <span class="reg-status-pill">${statusText}</span>
+              </div>
+              <div>Balance: <strong>${a.balance} GECs</strong></div>
+              <div style="margin-top:4px;font-size:0.78rem;color:#6b7280;">
+                Issued: <strong>${a.issued}</strong> |
+                Received: <strong>${a.received}</strong> |
+                Sent: <strong>${a.sent}</strong> |
+                Retired: <strong>${a.retired}</strong>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const txs = state.registry.txs.filter(t =>
+        filterAcc === "ALL"
+          ? true
+          : t.from === filterAcc || t.to === filterAcc
+      );
+
+      if (txs.length === 0) {
+        timelineEl.innerHTML =
+          '<div style="font-size:0.8rem;color:#6b7280;">No transactions yet. Trigger an issue / transfer / retire to see activity.</div>';
+      } else {
+        timelineEl.innerHTML = txs.map(t => {
+          const pillClass =
+            "reg-tx-pill " +
+            (t.action === "transfer"
+              ? "transfer"
+              : t.action === "retire"
+              ? "retire"
+              : t.action === "failed"
+              ? "fail"
+              : "");
+          const label =
+            t.action === "issue"
+              ? "Issue"
+              : t.action === "transfer"
+              ? "Transfer"
+              : t.action === "retire"
+              ? "Retire"
+              : t.action === "failed"
+              ? "Failed"
+              : "Tx";
+          return `
+            <div class="reg-tx-row">
+              <div class="reg-tx-time">${t.time}</div>
+              <div><span class="${pillClass}">${label}</span></div>
+              <div class="reg-tx-main">
+                ${t.action !== "failed"
+                  ? `<span><strong>${t.quantity}</strong> GECs</span>
+                     <span>${t.from} → ${t.to}</span>`
+                  : `<span>Transaction failed</span>`
+                }
+                ${t.deviceId && t.deviceId !== "—"
+                  ? `<span>(Device ${t.deviceId}, ${t.energySource})</span>`
+                  : ""}
+                <br/>
+                <span style="color:#9ca3af;font-size:0.72rem;">Prompt: ${t.prompt}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      if (!state.registry.rejected.length) {
+        rejectedEl.innerHTML =
+          '<div style="font-size:0.78rem;color:#6b7280;">No rejected commands so far.</div>';
+      } else {
+        rejectedEl.innerHTML = state.registry.rejected.map(r => {
+          return `
+            <div class="reg-rejected-item">
+              <div class="reg-rejected-time">${r.time}</div>
+              <div><strong>Prompt:</strong> ${r.prompt}</div>
+              <div class="reg-rejected-reason"><strong>Reason:</strong> ${r.reason}</div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function renderMainView() {
+      const heroSec = document.getElementById("hero-section");
+      const threadSec = document.getElementById("thread-section");
+      const dock = document.getElementById("dock");
+      const marketSec = document.getElementById("market-section");
+      const regSec = document.getElementById("registry-section");
+      const typing = document.getElementById("typing-indicator");
+
+      const active = getActiveConversation();
+      const showHero = !active || !hasUserMessage(active);
+      const showDock = state.view === "chat" && active;
+
+      if (state.view === "market") {
+        heroSec.style.display = "none";
+        threadSec.style.display = "none";
+        dock.style.display = "none";
+        marketSec.style.display = "block";
+        if (regSec) regSec.style.display = "none";
+        typing.style.display = "none";
+        return;
+      }
+
+      if (state.view === "registry") {
+        heroSec.style.display = "none";
+        threadSec.style.display = "none";
+        dock.style.display = "none";
+        marketSec.style.display = "none";
+        if (regSec) regSec.style.display = "block";
+        typing.style.display = "none";
+        renderRegistry();
+        return;
+      }
+
+      marketSec.style.display = "none";
+      if (regSec) regSec.style.display = "none";
+
+      if (showHero) {
+        heroSec.style.display = "flex";
+        threadSec.style.display = "none";
+      } else {
+        heroSec.style.display = "none";
+        threadSec.style.display = "block";
+      }
+
+      dock.style.display = showDock ? "block" : "none";
+      typing.style.display = state.isTyping && !showHero ? "block" : "none";
+
+      if (!showHero) {
+        renderMessages();
+      }
+    }
+
+    function renderMessages() {
+      const threadInner = document.getElementById("thread-inner");
+      const active = getActiveConversation();
+      threadInner.innerHTML = "";
+      if (!active) return;
+
+      active.messages.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "row " + (m.sender === "user" ? "user" : "bot");
+
+        if (m.sender === "bot") {
+          const avatar = document.createElement("div");
+          avatar.className = "avatar";
+          avatar.textContent = "GEC";
+          row.appendChild(avatar);
+        }
+
+        const wrap = document.createElement("div");
+        wrap.className = "bubble-wrap";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble" + (m.sender === "user" ? " user" : "");
+
+        if (m.sender === "bot") {
+          if (m.html) {
+            bubble.innerHTML = m.text;
+          } else {
+            bubble.innerHTML = markdownToHtml(m.text);
+          }
+        } else {
+          bubble.textContent = m.text;
+        }
+        wrap.appendChild(bubble);
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.innerHTML = `
+          <span>${m.sender === "user" ? "You" : "GEC Assistant"}</span>
+          <span>${m.time}</span>
+        `;
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "msg-btn";
+        copyBtn.textContent = "Copy";
+        copyBtn.addEventListener("click", () => {
+          navigator.clipboard.writeText(m.text || "");
+        });
+        actions.appendChild(copyBtn);
+
+        meta.appendChild(actions);
+        wrap.appendChild(meta);
+
+        row.appendChild(wrap);
+        threadInner.appendChild(row);
+      });
+
+      threadInner.scrollTop = threadInner.scrollHeight;
+    }
+
+    function renderAll() {
+      saveToStorage();
+      saveUser();
+      renderHistory();
+      renderTopbar();
+      renderMainView();
+    }
+
+    /*************** CONVERSATION HANDLERS ***************/
+    function createConversation(withWelcome) {
+      const id = genId();
+      const conv = {
+        id,
+        title: "New chat",
+        createdAt: new Date().toISOString(),
+        messages: []
+      };
+      if (withWelcome) {
+        conv.messages.push({
+          id: genId(),
+          sender: "bot",
+          text:
+`Assalam-o-Alaikum! 👋 I’m your GEC Assistant.
+
+Ask about certificates, issuance, transfer, retirement, flows, roles, or any project module.`,
+          time: nowTime(),
+          html: false
+        });
+      }
+      state.conversations.unshift(conv);
+      state.currentId = id;
+      return conv;
+    }
+
+    function pushMessage(convId, sender, text, opts = {}) {
+      const conv = state.conversations.find(c => c.id === convId);
+      if (!conv) return;
+      conv.messages.push({
+        id: genId(),
+        sender,
+        text,
+        time: nowTime(),
+        html: !!opts.html
+      });
+      if (sender === "user" && conv.title === "New chat") {
+        const t = (text || "").trim().replace(/\s+/g, " ");
+        conv.title = t.length > 48 ? t.slice(0, 45) + "…" : (t || "New chat");
+      }
+    }
+
+    function handleSend(text, isRegenerate) {
+      const trimmed = (text || "").trim();
+      if (!trimmed) return;
+
+      let conv = getActiveConversation();
+      if (!conv) {
+        conv = createConversation(true);
+      }
+
+      state.view = "chat";
+      if (!isRegenerate) {
+        pushMessage(conv.id, "user", trimmed);
+      }
+      state.lastUserMessage = trimmed;
+
+      state.isTyping = true;
+      renderAll();
+
+      const payload = {
+        message: trimmed
+      };
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data?.detail || "Backend error");
+          }
+          return data;
+        })
+        .then(data => {
+          if (!data || data.success === false) {
+            pushMessage(
+              conv.id,
+              "bot",
+              "Backend error or invalid response from /chat.",
+              { html: false }
+            );
+            return;
+          }
+
+          const reply = data.reply;
+
+          if (!reply) {
+            pushMessage(conv.id, "bot", "Empty reply from backend.", { html: false });
+            return;
+          }
+
+          if (typeof reply === "string") {
+            pushMessage(conv.id, "bot", reply, { html: false });
+            return;
+          }
+
+          if (reply.type === "answer") {
+            const txt = reply.text || "No answer.";
+            pushMessage(conv.id, "bot", txt, { html: false });
+
+            if (txt.startsWith("⚠ I couldn't complete")) {
+              registerRejected(state.lastUserMessage, txt);
+            }
+          } else if (reply.type === "mcp_result") {
+            const mcpResp = reply.mcp_response || {};
+            const body = mcpResp.body || {};
+            const prettyHtml = formatMcpBodyHtml(body);
+            updateRegistryFromMcp(body, state.lastUserMessage);
+            pushMessage(conv.id, "bot", prettyHtml, { html: true });
+          } else {
+            pushMessage(
+              conv.id,
+              "bot",
+              "Unexpected reply format: " + JSON.stringify(reply, null, 2),
+              { html: false }
+            );
+          }
+        })
+        .catch((err) => {
+          pushMessage(
+            conv.id,
+            "bot",
+            `I couldn't reach the backend or the backend returned an error.\n\n${err.message || "Unknown error"}`,
+            { html: false }
+          );
+        })
+        .finally(() => {
+          state.isTyping = false;
+          renderAll();
+        });
+    }
+
+    function handleDeleteConversation(id) {
+      if (!window.confirm("Delete this chat?")) return;
+      state.conversations = state.conversations.filter(c => c.id !== id);
+      if (state.currentId === id) {
+        state.currentId = state.conversations[0] ? state.conversations[0].id : null;
+      }
+      renderAll();
+    }
+
+    function handleClearAll() {
+      if (!window.confirm("Clear all chat history?")) return;
+      state.conversations = [];
+      state.currentId = null;
+      state.registry = { accounts:{}, txs:[], rejected:[] };
+      renderAll();
+    }
+
+    /*************** LOGIN MODAL ***************/
+    function openLoginModal() {
+      document.getElementById("login-modal-backdrop").style.display = "flex";
+      document.getElementById("login-name").value = "";
+      document.getElementById("login-did").value = "";
+      document.getElementById("login-role").value = "issuer";
+    }
+
+    function closeLoginModal() {
+      document.getElementById("login-modal-backdrop").style.display = "none";
+    }
+
+    function handleLoginSubmit() {
+      const nameInput = document.getElementById("login-name");
+      const roleInput = document.getElementById("login-role");
+      const didInput = document.getElementById("login-did");
+
+      const name = (nameInput.value || "Demo User").trim();
+      const role = roleInput.value || "issuer";
+      const did = (didInput.value || "did:gec:demo-user").trim();
+
+      const credential = {
+        id: "cred-" + Date.now(),
+        did,
+        name,
+        role,
+        issuer: "GEC Authority (Demo)",
+        issuedAt: new Date().toISOString(),
+        expiration: "2026-01-01T00:00:00Z",
+        signature: "demo-signature-123"
+      };
+
+      fetch(AUTH_SSI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential })
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || res.statusText);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          state.user = data.user;
+          state.token = data.token;
+          pushSystemMessage(
+            "✅ Logged in as " + data.user.name + " (" + data.user.role + ")."
+          );
+          closeLoginModal();
+          renderAll();
+        })
+        .catch((e) => {
+          console.error(e);
+          const fakeUser = { id: did, name, role };
+          state.user = fakeUser;
+          state.token = "demo-token";
+          pushSystemMessage(
+            "Logged in locally as " + name + " (" + role + "). Backend SSI endpoint was not reachable (demo mode)."
+          );
+          closeLoginModal();
+          renderAll();
+        });
+    }
+
+    function pushSystemMessage(text) {
+      let conv = getActiveConversation();
+      if (!conv) {
+        conv = createConversation(false);
+      }
+      pushMessage(conv.id, "bot", text, { html: false });
+    }
+
+    function handleLogout() {
+      state.user = null;
+      state.token = null;
+      pushSystemMessage("You have logged out.");
+      renderAll();
+    }
+
+    /*************** EVENT SETUP ***************/
+    document.addEventListener("DOMContentLoaded", () => {
+      loadFromStorage();
+      loadUser();
+
+      const btnNewChat = document.getElementById("btn-new-chat");
+      const btnOpenMarket = document.getElementById("btn-open-marketplace");
+      const btnBackToChat = document.getElementById("btn-back-to-chat");
+      const btnOpenRegistry = document.getElementById("btn-open-registry");
+      const btnRegBack = document.getElementById("btn-reg-back-chat");
+      const regAccountFilter = document.getElementById("reg-account-filter");
+
+      const btnClearAll = document.getElementById("btn-clear-all");
+      const searchInput = document.getElementById("search-input");
+
+      const heroInput = document.getElementById("hero-input");
+      const heroSendBtn = document.getElementById("hero-send-btn");
+
+      const dockInput = document.getElementById("dock-input");
+      const dockSendBtn = document.getElementById("dock-send-btn");
+
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
+      const loginBackdrop = document.getElementById("login-modal-backdrop");
+      const loginClose = document.getElementById("login-modal-close");
+      const loginCancel = document.getElementById("login-cancel");
+      const loginSubmit = document.getElementById("login-submit");
+
+      btnNewChat.addEventListener("click", () => {
+        createConversation(true);
+        state.view = "chat";
+        renderAll();
+      });
+
+      btnOpenMarket.addEventListener("click", () => {
+        state.view = "market";
+        renderAll();
+      });
+
+      btnBackToChat.addEventListener("click", () => {
+        state.view = "chat";
+        renderAll();
+      });
+
+      btnOpenRegistry.addEventListener("click", () => {
+        state.view = "registry";
+        renderAll();
+      });
+
+      btnRegBack.addEventListener("click", () => {
+        state.view = "chat";
+        renderAll();
+      });
+
+      if (regAccountFilter) {
+        regAccountFilter.addEventListener("change", () => {
+          renderRegistry();
+        });
+      }
+
+      btnClearAll.addEventListener("click", handleClearAll);
+
+      searchInput.addEventListener("input", (e) => {
+        state.search = e.target.value || "";
+        renderHistory();
+      });
+
+      heroSendBtn.addEventListener("click", () => {
+        const text = heroInput.value;
+        heroInput.value = "";
+        handleSend(text, false);
+      });
+
+      heroInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          const text = heroInput.value;
+          heroInput.value = "";
+          handleSend(text, false);
+        }
+      });
+
+      dockSendBtn.addEventListener("click", () => {
+        const text = dockInput.value;
+        dockInput.value = "";
+        handleSend(text, false);
+      });
+
+      dockInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          const text = dockInput.value;
+          dockInput.value = "";
+          handleSend(text, false);
+        }
+      });
+
+      btnLogin.addEventListener("click", openLoginModal);
+      btnLogout.addEventListener("click", handleLogout);
+
+      loginBackdrop.addEventListener("click", (e) => {
+        if (e.target === loginBackdrop) {
+          closeLoginModal();
+        }
+      });
+
+      loginClose.addEventListener("click", closeLoginModal);
+      loginCancel.addEventListener("click", closeLoginModal);
+      loginSubmit.addEventListener("click", handleLoginSubmit);
+
+      renderAll();
+    });
+  </script>
+</body>
+</html>

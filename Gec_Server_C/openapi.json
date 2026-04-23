@@ -1,0 +1,1026 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "GECChain MCP API (Aptos Move)",
+    "version": "1.0.0",
+    "description": "MVP OpenAPI spec aligned with the current Move modules: gec_certificate, gec_marketplace, gec_audit. Intended for MCP tool integration (agent -> API -> Aptos tx)."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local backend API"
+    },
+    {
+      "url": "https://YOUR_DOMAIN",
+      "description": "Deployed backend API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Certificates",
+      "description": "Certificate registry operations backed by Move module GECMove::gec_certificate"
+    },
+    {
+      "name": "Marketplace",
+      "description": "Listings and trades backed by Move module GECMove::gec_marketplace"
+    },
+    {
+      "name": "Audit",
+      "description": "Audit log events backed by Move module GECMove::gec_audit"
+    },
+    {
+      "name": "Agent",
+      "description": "Optional helper endpoints for chatbot/agent orchestration"
+    }
+  ],
+  "paths": {
+    "/certificates/init": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_init",
+        "summary": "Initialize CertRegistry under sender address",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitRegistryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/add-issuer": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_add_issuer",
+        "summary": "Whitelist an issuer address",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddIssuerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/remove-issuer": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_remove_issuer",
+        "summary": "Remove an issuer from whitelist",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveIssuerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/create": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_create",
+        "summary": "Create (issue) a certificate (issuer-only on-chain)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCertificateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/transfer": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_transfer",
+        "summary": "Transfer a certificate to a recipient",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferCertificateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/claim": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_claim",
+        "summary": "Claim/retire a certificate (consume for reporting)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimCertificateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/cancel": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_cancel",
+        "summary": "Cancel/void a certificate (invalidate)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelCertificateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/certificates/{registry_addr}/{cert_id}": {
+      "get": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_get_anchor",
+        "summary": "Fetch an on-chain certificate anchor via view function (basic fields only)",
+        "parameters": [
+          {
+            "name": "registry_addr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate anchor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateAnchor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/marketplace/init": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_init",
+        "summary": "Initialize MarketplaceStore under sender address",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitMarketplaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marketplace/list": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_list",
+        "summary": "List a certificate for sale",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListCertificateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marketplace/cancel": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_cancel",
+        "summary": "Cancel a listing (seller-only)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelListingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marketplace/request-buy": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_request_buy",
+        "summary": "Request to buy a listed certificate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestBuyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marketplace/accept-buy": {
+      "post": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_accept_buy",
+        "summary": "Seller accepts a pending buy request",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptBuyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marketplace/{market_addr}/stats": {
+      "get": {
+        "tags": [
+          "Marketplace"
+        ],
+        "operationId": "market_stats",
+        "summary": "Marketplace stats via view functions",
+        "parameters": [
+          {
+            "name": "market_addr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketplaceStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/init": {
+      "post": {
+        "tags": [
+          "Audit"
+        ],
+        "operationId": "audit_init",
+        "summary": "Initialize audit config (enabled=true) under module owner address",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/log": {
+      "post": {
+        "tags": [
+          "Audit"
+        ],
+        "operationId": "audit_log",
+        "summary": "Emit an audit event (module event)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/plan": {
+      "post": {
+        "tags": [
+          "Agent"
+        ],
+        "operationId": "agent_plan",
+        "summary": "(Optional) Return a tool+args plan for a natural language message",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentMessage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPlan"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TxRequest": {
+        "type": "object",
+        "properties": {
+          "sender_private_key_hex": {
+            "type": "string",
+            "description": "Ed25519 private key hex for signing (DO NOT expose in production; use wallet or server key vault)."
+          },
+          "sender_address": {
+            "type": "string",
+            "description": "0x... Aptos account address"
+          },
+          "gas_unit_price": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true
+          },
+          "max_gas_amount": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true
+          }
+        },
+        "required": [
+          "sender_private_key_hex",
+          "sender_address"
+        ]
+      },
+      "TxResponse": {
+        "type": "object",
+        "properties": {
+          "tx_hash": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "vm_status": {
+            "type": "string",
+            "nullable": true
+          },
+          "explorer_url": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "tx_hash",
+          "success"
+        ]
+      },
+      "InitRegistryRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ]
+      },
+      "AddIssuerRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string",
+            "description": "Address where CertRegistry resource lives"
+          },
+          "issuer": {
+            "type": "string",
+            "description": "0x... issuer address"
+          }
+        },
+        "required": [
+          "registry_addr",
+          "issuer"
+        ]
+      },
+      "RemoveIssuerRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string",
+            "description": "Address where CertRegistry resource lives"
+          },
+          "issuer": {
+            "type": "string",
+            "description": "0x... issuer address"
+          }
+        },
+        "required": [
+          "registry_addr",
+          "issuer"
+        ]
+      },
+      "CreateCertificateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string",
+            "description": "Address where CertRegistry resource lives"
+          },
+          "energy_source": {
+            "type": "string"
+          },
+          "energy_amount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "location": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional owner address; if omitted, sender_address will be used by backend"
+          },
+          "device_id": {
+            "type": "string",
+            "default": "device-demo"
+          },
+          "prod_start": {
+            "type": "string",
+            "default": ""
+          },
+          "prod_end": {
+            "type": "string",
+            "default": ""
+          },
+          "face_value": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          }
+        },
+        "required": [
+          "registry_addr",
+          "energy_source",
+          "energy_amount",
+          "location"
+        ]
+      },
+      "TransferCertificateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string"
+          },
+          "cert_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "0x... recipient address"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "nullable": true,
+            "description": "Optional quantity. If omitted, backend may fetch full bundle quantity via view function."
+          },
+          "note": {
+            "type": "string",
+            "default": "api transfer"
+          }
+        },
+        "required": [
+          "registry_addr",
+          "cert_id",
+          "recipient"
+        ]
+      },
+      "ClaimCertificateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string"
+          },
+          "cert_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "registry_addr",
+          "cert_id"
+        ]
+      },
+      "CancelCertificateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "registry_addr": {
+            "type": "string"
+          },
+          "cert_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "beneficiary": {
+            "type": "string",
+            "default": "api cancel"
+          }
+        },
+        "required": [
+          "registry_addr",
+          "cert_id"
+        ]
+      },
+      "CertificateAnchor": {
+        "type": "object",
+        "properties": {
+          "cert_id": {
+            "type": "integer"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "energy_source": {
+            "type": "string"
+          },
+          "energy_amount": {
+            "type": "integer"
+          },
+          "location": {
+            "type": "string"
+          },
+          "issued_at": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "integer",
+            "description": "0=ACTIVE,1=TRANSFERRED,2=RETIRED/CLAIMED,3=CANCELLED"
+          }
+        },
+        "required": [
+          "cert_id",
+          "owner",
+          "issued_at",
+          "status"
+        ]
+      },
+      "InitMarketplaceRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ]
+      },
+      "ListCertificateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "market_addr": {
+            "type": "string",
+            "description": "Address where MarketplaceStore resource lives"
+          },
+          "cert_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "market_addr",
+          "cert_id",
+          "price"
+        ]
+      },
+      "CancelListingRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "market_addr": {
+            "type": "string"
+          },
+          "listing_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "market_addr",
+          "listing_id"
+        ]
+      },
+      "RequestBuyRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "market_addr": {
+            "type": "string"
+          },
+          "listing_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "market_addr",
+          "listing_id"
+        ]
+      },
+      "AcceptBuyRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "market_addr": {
+            "type": "string"
+          },
+          "listing_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "market_addr",
+          "listing_id"
+        ]
+      },
+      "MarketplaceStats": {
+        "type": "object",
+        "properties": {
+          "listing_count": {
+            "type": "integer"
+          },
+          "total_trades": {
+            "type": "integer"
+          },
+          "total_volume": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "listing_count",
+          "total_trades",
+          "total_volume"
+        ]
+      },
+      "InitAuditRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ]
+      },
+      "AuditLogRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TxRequest"
+          }
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "details",
+          "target"
+        ]
+      },
+      "AgentMessage": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "AgentPlan": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "args": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "intent",
+          "tool",
+          "args"
+        ]
+      }
+    }
+  }
+}

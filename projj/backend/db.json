@@ -1,0 +1,110 @@
+{
+  "accounts": [
+    {
+      "id": "acc_1772033342407_1113",
+      "name": "Amina",
+      "role": "buyer"
+    },
+    {
+      "id": "acc_1772176845389_6506",
+      "name": "anonymous",
+      "role": "buyer"
+    },
+    {
+      "id": "acc_1772176862597_3992",
+      "name": "anonymous",
+      "role": "buyer"
+    }
+  ],
+  "bundles": [
+    {
+      "bundle_id": "bundle_1772175159193_897",
+      "created_at": "2026-02-27T06:52:39.194Z",
+      "owner_id": "acc_test",
+      "amount_mwh": 20,
+      "source": "Solar",
+      "status": "active"
+    },
+    {
+      "bundle_id": "bundle_1772175546493_1202",
+      "created_at": "2026-02-27T06:59:06.493Z",
+      "owner_id": "anonymous",
+      "amount_mwh": 20,
+      "source": "Solar",
+      "status": "active"
+    },
+    {
+      "bundle_id": "bundle_1772255707148_3939",
+      "created_at": "2026-02-28T05:15:07.148Z",
+      "owner_id": "anonymous",
+      "amount_mwh": 101,
+      "source": "Wind",
+      "device_id": "device-demo-1",
+      "status": "active"
+    },
+    {
+      "bundle_id": "bundle_1772255877301_4686",
+      "created_at": "2026-02-28T05:17:57.301Z",
+      "owner_id": "anonymous",
+      "amount_mwh": 101,
+      "source": "Wind",
+      "device_id": "device-demo-1",
+      "status": "active"
+    },
+    {
+      "bundle_id": "bundle_1772467325329_2304",
+      "created_at": "2026-03-02T16:02:05.329Z",
+      "owner_id": "acc_1772033342407_1113",
+      "amount_mwh": 40,
+      "source": "Solar",
+      "status": "active"
+    },
+    {
+      "bundle_id": "bundle_1772467334085_7226",
+      "created_at": "2026-03-02T16:02:14.085Z",
+      "owner_id": "acc_1772033342407_1113",
+      "amount_mwh": 40,
+      "source": "Solar",
+      "status": "active"
+    }
+  ],
+  "marketplace": [],
+  "proofs": [
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772175159193_897",
+      "hash": "14f3b5e4eced54558b138f721bd391e878c4f3f87349d474d3cd7f8a70468686",
+      "at": "2026-02-27T06:52:39.201Z"
+    },
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772175546493_1202",
+      "hash": "aa1f19535156ec56a7c101307e277a6e6e51ab0d42e496a791be0f05823cdb60",
+      "at": "2026-02-27T06:59:06.493Z"
+    },
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772255707148_3939",
+      "hash": "22a9ca3d417ee745ef74586fa37102cf74a4b2b977c05c5a468402a8cad5f6ae",
+      "at": "2026-02-28T05:15:07.151Z"
+    },
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772255877301_4686",
+      "hash": "2f6cd3a43fe818a8b584c36e68a089cef3f2b503172d13f65c3386951fc77151",
+      "at": "2026-02-28T05:17:57.301Z"
+    },
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772467325329_2304",
+      "hash": "3790413de1f0c05b9cc3254743a5dd310f1a82439460b86c4999f4724909a310",
+      "at": "2026-03-02T16:02:05.331Z"
+    },
+    {
+      "type": "CREATE_BUNDLE",
+      "bundle_id": "bundle_1772467334085_7226",
+      "hash": "6e9e803f51d0926635e8ceadeb4bf65222734f86c4566b0c6b31db356b5a5643",
+      "at": "2026-03-02T16:02:14.086Z"
+    }
+  ]
+}

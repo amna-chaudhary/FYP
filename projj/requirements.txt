@@ -1,0 +1,9 @@
+langchain
+ipykernel
+langchain-community
+langchain-text-splitters
+langchain-ollama
+chromadb
+langchain_chroma
+python-dotenv
+streamlit

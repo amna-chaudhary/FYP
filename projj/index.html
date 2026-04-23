@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EnergyCert Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="icon" type="image/png" href="logo1.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <script>
+    (function() {
+      try {
+        var stored = localStorage.getItem("ecb-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = stored || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="ribbon"></div>
+
+  <div class="ambient" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div id="root">
+    <div class="app">
+
+      <!-- ==================== Sidebar ==================== -->
+      <aside class="sidebar">
+        <div class="sb-top">
+          <div class="brand">
+            <img src="logo1.png" class="brand-logo" alt="EnergyCert Logo" />
+            <div class="brand-text">
+              <span class="brand-title">EnergyCert Bot</span>
+              <span class="brand-subtitle">AI · Aptos · Registry</span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sb-nav">
+          <button class="sb-nav-item" id="btn-new-chat" type="button">
+            <span class="sb-nav-icon sb-nav-icon-circle">+</span>
+            <span>New chat</span>
+          </button>
+
+          <div class="sb-nav-item sb-nav-search">
+            <span class="sb-nav-icon sb-nav-icon-circle">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <input id="search-input" placeholder="Search chats" />
+          </div>
+        </nav>
+
+        <div class="history-header">
+          <span class="history-title">Chats</span>
+        </div>
+
+        <div class="history" id="history-list"></div>
+
+        <div class="sb-bottom">
+          <div class="sb-user-panel" id="sb-user-panel">
+            <div class="sb-user-row">
+
+              <div class="sb-user-avatar" id="sb-user-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+
+              <span class="sb-user-name" id="sb-user-name">User</span>
+
+              <button
+                class="sb-user-menu-btn"
+                id="sb-user-menu-btn"
+                type="button"
+                aria-label="Open user menu"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <circle cx="12" cy="5" r="1.8"/>
+                  <circle cx="12" cy="12" r="1.8"/>
+                  <circle cx="12" cy="19" r="1.8"/>
+                </svg>
+              </button>
+
+              <div class="sb-user-menu" id="sb-user-menu" role="menu">
+
+                <!-- Panel 1: MAIN -->
+                <div class="sb-user-menu-panel sb-user-menu-panel--main" data-panel="main">
+
+                  <div class="sb-user-menu-header">
+                    <div class="sb-user-menu-header-avatar" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>
+                    <div class="sb-user-menu-header-info">
+                      <span class="sb-user-menu-header-name" id="sb-user-menu-name">User</span>
+                      <span class="sb-user-menu-header-role" id="sb-user-menu-role">Signed in</span>
+                    </div>
+                  </div>
+
+                  <div class="sb-user-menu-divider"></div>
+
+                  <button class="sb-user-menu-item sb-user-menu-item--has-sub" id="btn-open-settings" type="button" role="menuitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span>Settings</span>
+                    <svg class="sb-user-menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="9 6 15 12 9 18"/>
+                    </svg>
+                  </button>
+
+                  <div class="sb-user-menu-divider"></div>
+
+                  <button class="sb-user-menu-item sb-user-menu-item--danger" id="btn-logout" type="button" role="menuitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                      <polyline points="16 17 21 12 16 7"/>
+                      <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+
+                <!-- Panel 2: SETTINGS -->
+                <div class="sb-user-menu-panel sb-user-menu-panel--settings" data-panel="settings">
+
+                  <div class="sb-user-menu-sub-header">
+                    <button class="sb-user-menu-back" id="btn-settings-back" type="button" aria-label="Back">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                      </svg>
+                    </button>
+                    <span class="sb-user-menu-sub-title">Settings</span>
+                  </div>
+
+                  <div class="sb-user-menu-divider"></div>
+
+                  <div class="sb-user-menu-setting-row">
+                    <div class="sb-user-menu-setting-label">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                      </svg>
+                      <span>Appearance</span>
+                    </div>
+                    <div class="sb-theme-toggle" role="radiogroup" aria-label="Theme">
+                      <button type="button" data-theme-value="light" role="radio">Light</button>
+                      <button type="button" data-theme-value="dark"  role="radio">Dark</button>
+                    </div>
+                  </div>
+
+                  <div class="sb-user-menu-divider"></div>
+
+                  <button class="sb-user-menu-item" id="btn-settings-profile" type="button" role="menuitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile
+                  </button>
+
+                  <button class="sb-user-menu-item" id="btn-settings-notifications" type="button" role="menuitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    Notifications
+                  </button>
+
+                  <button class="sb-user-menu-item" id="btn-settings-about" type="button" role="menuitem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="16" x2="12" y2="12"/>
+                      <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    About
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <button class="btn sb-logout-btn" id="btn-logout-legacy" type="button" hidden>
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      <!-- ==================== Main ==================== -->
+      <main class="main">
+
+        <div class="topbar">
+          <div class="top-left">
+            <div class="topbar-brand" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2l8 3v7c0 5-3.5 8-8 10-4.5-2-8-5-8-10V5l8-3z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="topbar-titleblock">
+              <h1 id="topbar-title">EnergyCert Bot</h1>
+              <p>Green Energy Certificate assistant · powered by LLM, RAG &amp; Aptos blockchain</p>
+              <div class="topbar-meta">
+                <span class="topbar-status">
+                  <span class="topbar-status-dot" aria-hidden="true"></span>
+                  <span>Active session</span>
+                </span>
+                <span class="topbar-meta-sep" aria-hidden="true"></span>
+                <span class="topbar-meta-pill">LLM</span>
+                <span class="topbar-meta-pill">RAG</span>
+                <span class="topbar-meta-pill">Aptos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-controls">
+            <button class="btn topbar-btn" id="btn-theme-toggle-top" type="button" aria-label="Toggle theme">
+              <svg class="topbar-btn-icon topbar-theme-icon topbar-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+              </svg>
+              <svg class="topbar-btn-icon topbar-theme-icon topbar-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+              <span class="topbar-btn-label" id="topbar-theme-label">Dark</span>
+            </button>
+
+            <span class="topbar-divider" aria-hidden="true"></span>
+
+            <button class="btn topbar-btn" id="btn-open-marketplace" type="button">
+              <svg class="topbar-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18l-1.5 7H4.5z"/>
+                <path d="M7 6V4.5A2.5 2.5 0 0 1 9.5 2h5A2.5 2.5 0 0 1 17 4.5V6"/>
+                <path d="M6 13v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5"/>
+              </svg>
+              <span class="topbar-btn-label">Marketplace</span>
+            </button>
+
+            <button class="btn topbar-btn" id="btn-open-registry" type="button">
+              <svg class="topbar-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2"/>
+                <line x1="8" y1="8" x2="16" y2="8"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+                <line x1="8" y1="16" x2="13" y2="16"/>
+              </svg>
+              <span class="topbar-btn-label">Registry</span>
+            </button>
+          </div>
+        </div>
+
+        <section class="hero" id="hero-section">
+          <div class="hero-inner">
+            <div class="hero-badge-row">
+              <span class="hero-badge">AI Assistant</span>
+              <span class="hero-badge hero-badge-soft">Marketplace + Registry</span>
+            </div>
+
+            <div class="hero-title">Where should we begin?</div>
+
+            <div class="hero-subtitle">
+              Your domain assistant for the GEC registry — ask about issuance, transfer, retirement,
+              marketplace trades, roles, and certificate activity in plain language.
+            </div>
+
+            <div class="hero-quick-actions">
+              <button class="hero-chip" id="hero-chip-what-is-gec" type="button">What is GEC?</button>
+              <button class="hero-chip" id="hero-chip-issue" type="button">How do I issue a certificate?</button>
+              <button class="hero-chip" id="hero-chip-transfer" type="button">How does transfer work?</button>
+              <button class="hero-chip" id="hero-chip-market" type="button">Open marketplace</button>
+            </div>
+
+            <div class="hero-input">
+              <textarea rows="1" placeholder="Ask anything about GEC" id="hero-input" aria-label="Ask anything about GEC"></textarea>
+              <button class="send-btn" id="hero-send-btn" type="button" aria-label="Send">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M13 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="hero-helper-grid">
+              <div class="hero-helper-card">
+                <div class="hero-helper-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+                  </svg>
+                </div>
+                <div class="hero-helper-title">
+                  <strong>Registry actions</strong>
+                  Issue, transfer, retire, and review certificate activity.
+                </div>
+              </div>
+              <div class="hero-helper-card">
+                <div class="hero-helper-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3v18h18"/>
+                    <path d="M7 15l4-4 4 4 5-5"/>
+                    <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
+                    <circle cx="11" cy="11" r="1.5" fill="currentColor"/>
+                    <circle cx="15" cy="15" r="1.5" fill="currentColor"/>
+                    <circle cx="20" cy="10" r="1.5" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="hero-helper-title">
+                  <strong>Marketplace flows</strong>
+                  Browse buy/sell opportunities and inspect session-driven market data.
+                </div>
+              </div>
+              <div class="hero-helper-card">
+                <div class="hero-helper-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                </div>
+                <div class="hero-helper-title">
+                  <strong>Guided help</strong>
+                  Ask questions in plain language — no technical commands required.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="thread" id="thread-section">
+          <div class="thread-inner" id="thread-inner"></div>
+        </section>
+
+        <section id="market-section" class="marketplace" aria-label="GEC Marketplace">
+          <div class="market-inner">
+            <header class="market-header">
+              <div class="market-header-main">
+                <span class="market-eyebrow">GEC Marketplace</span>
+                <h2 class="market-title">Discover and trade Green Energy Certificates</h2>
+                <p class="market-subtitle">
+                  View live session-based buy and sell opportunities, monitor registry-linked market indicators, and explore certificate trading activity.
+                </p>
+              </div>
+            </header>
+
+            <div class="market-tabs-row">
+              <div class="market-tabs" role="tablist" aria-label="Marketplace filters">
+                <button class="market-tab active" data-tab="all" type="button" role="tab">All</button>
+                <button class="market-tab" data-tab="buy" type="button" role="tab">Buy opportunities</button>
+                <button class="market-tab" data-tab="sell" type="button" role="tab">Sell opportunities</button>
+              </div>
+
+              <div class="market-actions">
+                <button class="market-filter-chip" id="market-filter-btn" type="button">Filters</button>
+                <button class="market-filter-chip market-filter-chip--primary" id="market-primary-action" type="button">Marketplace action</button>
+              </div>
+            </div>
+
+            <div id="market-filters-panel" class="market-filters-panel" hidden>
+              <div class="market-filters-grid">
+                <label class="market-filter-field">
+                  <span>Minimum volume (MWh)</span>
+                  <input id="market-filter-min-volume" type="number" min="0" placeholder="e.g. 100" />
+                </label>
+                <label class="market-filter-field">
+                  <span>Energy source</span>
+                  <input id="market-filter-source" type="text" placeholder="Solar, Wind..." />
+                </label>
+                <label class="market-filter-field">
+                  <span>Status</span>
+                  <select id="market-filter-status">
+                    <option value="">All</option>
+                    <option value="open">Open</option>
+                    <option value="partial">Partial</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </label>
+                <div class="market-filter-actions">
+                  <button id="market-filter-apply" type="button" class="market-filter-chip market-filter-chip--primary">Apply</button>
+                  <button id="market-filter-clear" type="button" class="market-filter-chip">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <section class="market-section" aria-labelledby="market-kpis-title">
+              <header class="market-section-header">
+                <h3 id="market-kpis-title">Registry overview</h3>
+              </header>
+
+              <div class="kpi-grid">
+                <article class="kpi-card">
+                  <div class="kpi-label">Total issued</div>
+                  <div class="kpi-main" id="kpi-total-issued">0.0 MWh</div>
+                  <div class="kpi-sub">Across all generators</div>
+                </article>
+                <article class="kpi-card">
+                  <div class="kpi-label">Matched against load</div>
+                  <div class="kpi-main" id="kpi-matching-gen">0.0 MWh</div>
+                  <div class="kpi-sub">Certificates already retired</div>
+                </article>
+                <article class="kpi-card">
+                  <div class="kpi-label">Excess available to sell</div>
+                  <div class="kpi-main" id="kpi-excess">0.0 MWh</div>
+                  <div class="kpi-sub">Potential sell-side volume</div>
+                </article>
+                <article class="kpi-card">
+                  <div class="kpi-label">Unmatched demand</div>
+                  <div class="kpi-main" id="kpi-unmatched">0.0 MWh</div>
+                  <div class="kpi-sub">Potential buy-side demand</div>
+                </article>
+              </div>
+            </section>
+
+            <section class="market-section" aria-labelledby="market-insights-title">
+              <header class="market-section-header">
+                <h3 id="market-insights-title">Market insights</h3>
+              </header>
+
+              <div class="chart-row">
+                <article class="chart-card">
+                  <div class="chart-title">
+                    <span>Supply vs demand</span>
+                    <span class="chart-sub">Live session market data</span>
+                  </div>
+                  <div class="chart-placeholder" id="chart-supply-demand"></div>
+                </article>
+
+                <article class="chart-card">
+                  <div class="chart-title">
+                    <span>Trend bands</span>
+                    <span class="chart-sub">Live weighted trend by technology</span>
+                  </div>
+                  <div class="chart-placeholder" id="chart-price-bands"></div>
+                </article>
+              </div>
+            </section>
+
+            <section class="market-section market-section--opps" aria-labelledby="market-opps-title">
+              <header class="market-section-header">
+                <h3 id="market-opps-title">Live market opportunities</h3>
+                <p>Listings below update from session registry activity.</p>
+              </header>
+
+              <div id="market-opps-list" class="market-opps-list"></div>
+
+              <footer class="market-opps-footer">
+                Listings will appear here from session registry activity.
+              </footer>
+            </section>
+          </div>
+        </section>
+
+        <section id="registry" class="registry">
+          <div class="registry-inner">
+            <header class="reg-header">
+              <div class="reg-header-left market-header-main">
+                <span class="market-eyebrow">GEC Registry</span>
+                <h2 class="market-title">Track and manage Green Energy Certificate registry activity</h2>
+                <p class="market-subtitle">
+                  View session-based issuance, transfers, retirements, balances, and command outcomes in one registry workspace.
+                </p>
+              </div>
+            </header>
+
+            <div id="registry-summary" class="reg-summary-grid"></div>
+
+            <div class="reg-filters">
+              <div class="reg-filters-left">
+                <label for="reg-account-filter">Account</label>
+                <select id="reg-account-filter" class="reg-select"></select>
+              </div>
+              <span class="reg-filters-note">
+                Totals shown for this chat only — not the global registry.
+              </span>
+            </div>
+
+            <div class="reg-main-grid">
+              <section class="reg-section reg-card">
+                <div class="reg-section-header">
+                  <h3>Activity log</h3>
+                  <p class="reg-section-sub">Ordered list of issues, transfers, retirements and balance checks.</p>
+                </div>
+                <div id="registry-timeline" class="reg-timeline-list"></div>
+              </section>
+
+              <section class="reg-section reg-card">
+                <div class="reg-section-header">
+                  <h3>Account balances</h3>
+                  <p class="reg-section-sub">Net GEC balance per account in this session.</p>
+                </div>
+                <div id="registry-holdings" class="reg-holdings-grid"></div>
+              </section>
+            </div>
+
+            <section class="reg-section reg-card reg-rejected-wrapper">
+              <div class="reg-section-header">
+                <h3>Rejected commands</h3>
+                <p class="reg-section-sub">Prompts that could not be converted into valid registry operations.</p>
+              </div>
+              <div id="registry-rejected" class="reg-rejected-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <div class="typing" id="typing-indicator" hidden>
+          GEC Assistant is typing
+          <span class="dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </span>
+        </div>
+
+        <div class="dock" id="dock">
+          <div class="dock-inner">
+            <textarea rows="1" placeholder="Write your message…" id="dock-input" aria-label="Write your message"></textarea>
+            <button class="send-btn" id="dock-send-btn" type="button">
+              Send
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="logout-screen" class="logout-screen" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <div class="logout-card">
+      <h2 id="logout-title" class="logout-title">Confirm Logout</h2>
+      <p class="logout-subtitle">Are you sure you want to logout?</p>
+      <div class="logout-actions">
+        <button id="logout-cancel" class="logout-btn logout-btn-secondary" type="button">Cancel</button>
+        <button id="logout-confirm" class="logout-btn logout-btn-primary" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        try { localStorage.setItem("ecb-theme", theme); } catch (e) {}
+        var label = document.getElementById("topbar-theme-label");
+        if (label) label.textContent = theme === "dark" ? "Light" : "Dark";
+      }
+
+      var initialTheme = document.documentElement.getAttribute("data-theme") || "light";
+      applyTheme(initialTheme);
+
+      var themeBtn = document.getElementById("btn-theme-toggle-top");
+      if (themeBtn) {
+        themeBtn.addEventListener("click", function () {
+          var current = document.documentElement.getAttribute("data-theme") || "light";
+          applyTheme(current === "dark" ? "light" : "dark");
+          syncThemePills();
+        });
+      }
+
+      var menuBtn = document.getElementById("sb-user-menu-btn");
+      var menu    = document.getElementById("sb-user-menu");
+
+      function closeMenu() {
+        if (!menu) return;
+        menu.classList.remove("open");
+        menu.classList.remove("show-settings");
+        if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+      }
+      function toggleMenu(e) {
+        if (!menu || !menuBtn) return;
+        e.stopPropagation();
+        var isOpen = menu.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+      if (menuBtn) menuBtn.addEventListener("click", toggleMenu);
+
+      document.addEventListener("click", function (e) {
+        if (!menu || !menu.classList.contains("open")) return;
+        if (menu.contains(e.target) || (menuBtn && menuBtn.contains(e.target))) return;
+        closeMenu();
+      });
+
+      var logoutScreen  = document.getElementById("logout-screen");
+      var logoutCancel  = document.getElementById("logout-cancel");
+      var logoutConfirm = document.getElementById("logout-confirm");
+      var btnLogout     = document.getElementById("btn-logout");
+
+      function openLogoutModal() {
+        if (!logoutScreen) return;
+        logoutScreen.classList.add("is-open");
+        closeMenu();
+      }
+      function closeLogoutModal() {
+        if (logoutScreen) logoutScreen.classList.remove("is-open");
+      }
+
+      function doLogout() {
+        try { localStorage.removeItem("ecb-user"); } catch (e) {}
+        try {
+          if (typeof state !== "undefined" && state) {
+            state.user = null;
+            if (typeof saveUser === "function") saveUser();
+          }
+        } catch (e) {}
+        closeLogoutModal();
+        closeMenu();
+        window.location.href = "login.html";
+      }
+
+      if (btnLogout) {
+        btnLogout.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          openLogoutModal();
+        });
+      }
+      if (logoutCancel)  logoutCancel.addEventListener("click", closeLogoutModal);
+      if (logoutConfirm) logoutConfirm.addEventListener("click", doLogout);
+      if (logoutScreen) {
+        logoutScreen.addEventListener("click", function (e) {
+          if (e.target === logoutScreen) closeLogoutModal();
+        });
+      }
+
+      // Settings sub-panel navigation
+      var btnOpenSettings = document.getElementById("btn-open-settings");
+      var btnSettingsBack = document.getElementById("btn-settings-back");
+
+      if (btnOpenSettings) {
+        btnOpenSettings.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (menu) menu.classList.add("show-settings");
+        });
+      }
+      if (btnSettingsBack) {
+        btnSettingsBack.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (menu) menu.classList.remove("show-settings");
+        });
+      }
+
+      // Theme pill toggle
+      var themePillBtns = document.querySelectorAll(".sb-theme-toggle button[data-theme-value]");
+      function syncThemePills() {
+        var cur = document.documentElement.getAttribute("data-theme") || "light";
+        themePillBtns.forEach(function (b) {
+          b.classList.toggle("is-active", b.getAttribute("data-theme-value") === cur);
+        });
+      }
+      themePillBtns.forEach(function (b) {
+        b.addEventListener("click", function (e) {
+          e.stopPropagation();
+          applyTheme(b.getAttribute("data-theme-value"));
+          syncThemePills();
+        });
+      });
+      syncThemePills();
+
+      ["btn-settings-profile", "btn-settings-notifications", "btn-settings-about"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("click", function (e) {
+          e.stopPropagation();
+          console.log(id + " clicked");
+        });
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          closeMenu();
+          closeLogoutModal();
+        }
+      });
+
+      window.EnergyCertUI = window.EnergyCertUI || {};
+      window.EnergyCertUI.setUser = function (name, role) {
+        var panel       = document.getElementById("sb-user-panel");
+        var nameEl      = document.getElementById("sb-user-name");
+        var menuNameEl  = document.getElementById("sb-user-menu-name");
+        var menuRoleEl  = document.getElementById("sb-user-menu-role");
+
+        if (nameEl && name)     nameEl.textContent = name;
+        if (menuNameEl && name) menuNameEl.textContent = name;
+        if (menuRoleEl)         menuRoleEl.textContent = role || "Signed in";
+        if (panel)              panel.classList.add("is-visible");
+      };
+      window.EnergyCertUI.clearUser = function () {
+        var panel = document.getElementById("sb-user-panel");
+        if (panel) panel.classList.remove("is-visible");
+        closeMenu();
+      };
+    })();
+  </script>
+
+  <script src="app-config.js"></script>
+  <script src="app-login.js"></script>
+  <script src="app-chat.js"></script>
+  <script src="app-marketplace.js"></script>
+  <script src="app-registry.js"></script>
+  <script src="app-init.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var chips = {
+        "hero-chip-what-is-gec": "what is gec",
+        "hero-chip-issue": "How do I issue a certificate?",
+        "hero-chip-transfer": "How does certificate transfer work?"
+      };
+
+      Object.entries(chips).forEach(function (entry) {
+        var id = entry[0], text = entry[1];
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("click", function () {
+          var heroInput = document.getElementById("hero-input");
+          if (heroInput) {
+            heroInput.value = text;
+            heroInput.focus();
+          }
+        });
+      });
+
+      var openMarketChip = document.getElementById("hero-chip-market");
+      if (openMarketChip) {
+        openMarketChip.addEventListener("click", function () {
+          var btn = document.getElementById("btn-open-marketplace");
+          if (btn) btn.click();
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>
