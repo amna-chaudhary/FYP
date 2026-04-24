@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create account · EnergyCert Bot</title>
+  <title>Sign in · EnergyCert Bot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="logo1.png" />
+  <link rel="icon" type="image/png" href="../assets/logo1.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../styles/styles.css" />
   <script>
     (function () {
       try {
@@ -135,13 +135,13 @@
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
-    .auth-form-inner { width: 100%; max-width: 440px; }
+    .auth-form-inner { width: 100%; max-width: 420px; }
     .auth-form-head h2 {
       font-family: "Fraunces", Georgia, serif;
       font-weight: 600; font-size: 2rem;
       color: var(--auth-text); margin: 0 0 8px; letter-spacing: -0.5px;
     }
-    .auth-form-head p { color: var(--auth-text-muted); font-size: 0.95rem; margin: 0 0 24px; }
+    .auth-form-head p { color: var(--auth-text-muted); font-size: 0.95rem; margin: 0 0 28px; }
 
     .auth-banner {
       border-radius: 12px; padding: 12px 14px;
@@ -151,14 +151,7 @@
     .auth-banner--error   { color: var(--auth-error);   background: var(--auth-error-bg);   border-color: var(--auth-error); }
     .auth-banner--success { color: var(--auth-success); background: var(--auth-success-bg); border-color: var(--auth-success); }
 
-    .auth-row-2col {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    }
-    @media (max-width: 520px) {
-      .auth-row-2col { grid-template-columns: 1fr; gap: 0; }
-    }
-
-    .auth-field { display: block; margin-bottom: 14px; }
+    .auth-field { display: block; margin-bottom: 16px; }
     .auth-field-label {
       display: block; font-size: 0.85rem; font-weight: 600;
       color: var(--auth-text); margin-bottom: 6px;
@@ -170,11 +163,11 @@
       color: var(--auth-text-faint); pointer-events: none;
     }
     .auth-input {
-      width: 100%; height: 46px;
+      width: 100%; height: 48px;
       padding: 0 44px 0 42px;
       border: 1px solid var(--auth-border); border-radius: 12px;
       background: var(--auth-surface); color: var(--auth-text);
-      font-family: inherit; font-size: 0.94rem;
+      font-family: inherit; font-size: 0.95rem;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .auth-input:focus {
@@ -190,7 +183,7 @@
 
     .auth-pass-toggle {
       position: absolute; right: 8px;
-      width: 30px; height: 30px;
+      width: 32px; height: 32px;
       border: 0; background: transparent;
       color: var(--auth-text-faint); cursor: pointer;
       display: grid; place-items: center;
@@ -202,28 +195,25 @@
     .auth-pass-toggle.is-showing .icon-show { display: none; }
     .auth-pass-toggle.is-showing .icon-hide { display: block; }
 
-    .auth-pass-strength {
-      display: flex; gap: 4px; margin: 6px 0 0;
+    .auth-helper-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 4px 0 20px; font-size: 0.85rem;
     }
-    .auth-pass-strength span {
-      flex: 1; height: 4px; border-radius: 2px;
-      background: var(--auth-border);
-      transition: background 0.2s;
+    .auth-checkbox {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; color: var(--auth-text-muted);
     }
-    .auth-pass-strength.s-1 span:nth-child(1) { background: #dc2626; }
-    .auth-pass-strength.s-2 span:nth-child(-n+2) { background: #f59e0b; }
-    .auth-pass-strength.s-3 span:nth-child(-n+3) { background: #10b981; }
-    .auth-pass-strength.s-4 span { background: var(--auth-primary); }
-    .auth-pass-hint {
-      font-size: 0.78rem; color: var(--auth-text-faint); margin: 6px 0 0;
+    .auth-checkbox input { width: 15px; height: 15px; accent-color: var(--auth-primary); }
+    .auth-link-subtle {
+      color: var(--auth-primary); font-weight: 600; text-decoration: none;
     }
+    .auth-link-subtle:hover { text-decoration: underline; }
 
     .auth-submit {
       width: 100%; height: 48px; border: 0; border-radius: 12px;
       background: var(--auth-primary); color: #fff;
       font-weight: 700; font-size: 0.96rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 10px;
-      margin-top: 8px;
       transition: background 0.15s, transform 0.05s;
     }
     .auth-submit:hover { background: var(--auth-primary-dark); }
@@ -239,7 +229,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .auth-form-foot {
-      text-align: center; margin-top: 20px;
+      text-align: center; margin-top: 24px;
       font-size: 0.9rem; color: var(--auth-text-muted);
     }
     .auth-form-foot a {
@@ -262,7 +252,7 @@
 
     @media (max-width: 960px) {
       .auth-page { grid-template-columns: 1fr; }
-      .auth-brand { padding: 32px 28px; min-height: 220px; }
+      .auth-brand { padding: 32px 28px; min-height: 240px; }
       .auth-brand-main h1 { font-size: 1.6rem; }
       .auth-brand-main p { margin-bottom: 18px; }
       .auth-feature-list { display: none; }
@@ -279,17 +269,17 @@
   <main class="auth-page">
     <aside class="auth-brand">
       <div class="auth-brand-logo">
-        <img src="logo1.png" alt="" onerror="this.style.display='none'" />
+        <img src="../assets/logo1.png" alt="" onerror="this.style.display='none'" />
         <span>EnergyCert Bot</span>
       </div>
 
       <div class="auth-brand-main">
-        <h1>Join the registry. Start issuing green certificates.</h1>
-        <p>Create an account to access your workspace — issue, transfer, and retire GECs through a plain-language assistant built on AI and Aptos.</p>
+        <h1>Green Energy Certificates, made conversational.</h1>
+        <p>Issue, transfer, and retire GECs through a plain-language assistant built on AI and Aptos.</p>
         <ul class="auth-feature-list">
-          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Free to get started</span></li>
-          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Marketplace and registry access</span></li>
-          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Secure session-based audit trail</span></li>
+          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Registry actions in natural language</span></li>
+          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Live marketplace signals</span></li>
+          <li><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span>Session-based audit trail</span></li>
         </ul>
       </div>
 
@@ -304,37 +294,18 @@
 
       <div class="auth-form-inner">
         <div class="auth-form-head">
-          <h2>Create your account</h2>
-          <p>Start managing certificates in under a minute.</p>
+          <h2>Welcome back</h2>
+          <p>Sign in to continue to your registry workspace.</p>
         </div>
 
-        <div id="register-error" class="auth-banner auth-banner--error" hidden></div>
-        <div id="register-success" class="auth-banner auth-banner--success" hidden></div>
+        <div id="auth-banner" class="auth-banner" hidden></div>
 
-        <form id="register-form">
-          <div class="auth-row-2col">
-            <label class="auth-field">
-              <span class="auth-field-label">First name</span>
-              <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <input id="register-first-name" class="auth-input" type="text" autocomplete="given-name" placeholder="Ada" required />
-              </div>
-            </label>
-
-            <label class="auth-field">
-              <span class="auth-field-label">Last name</span>
-              <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <input id="register-last-name" class="auth-input" type="text" autocomplete="family-name" placeholder="Lovelace" required />
-              </div>
-            </label>
-          </div>
-
+        <form id="login-form">
           <label class="auth-field">
             <span class="auth-field-label">Email</span>
             <div class="auth-input-wrap">
               <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/><path d="M4 7l8 6 8-6"/></svg>
-              <input id="register-email" class="auth-input" type="email" autocomplete="email" placeholder="you@company.com" required />
+              <input id="login-email" class="auth-input" type="email" autocomplete="email" placeholder="you@company.com" required />
             </div>
           </label>
 
@@ -342,37 +313,31 @@
             <span class="auth-field-label">Password</span>
             <div class="auth-input-wrap">
               <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-              <input id="register-password" class="auth-input" type="password" autocomplete="new-password" placeholder="At least 8 characters" required />
-              <button type="button" class="auth-pass-toggle" data-pass-toggle="register-password" aria-label="Show password">
-                <svg class="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-            <div class="auth-pass-strength" id="register-pass-strength"><span></span><span></span><span></span><span></span></div>
-            <div class="auth-pass-hint" id="register-pass-hint">Use 8+ characters with a mix of letters and numbers.</div>
-          </label>
-
-          <label class="auth-field">
-            <span class="auth-field-label">Confirm password</span>
-            <div class="auth-input-wrap">
-              <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-              <input id="register-confirm-password" class="auth-input" type="password" autocomplete="new-password" placeholder="Re-enter password" required />
-              <button type="button" class="auth-pass-toggle" data-pass-toggle="register-confirm-password" aria-label="Show password">
+              <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="Your password" required />
+              <button type="button" class="auth-pass-toggle" data-pass-toggle="login-password" aria-label="Show password">
                 <svg class="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg class="icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
               </button>
             </div>
           </label>
 
-          <button type="submit" id="register-submit" class="auth-submit">
+          <div class="auth-helper-row">
+            <label class="auth-checkbox">
+              <input type="checkbox" id="login-remember" />
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="auth-link-subtle">Forgot password?</a>
+          </div>
+
+          <button type="submit" id="auth-submit" class="auth-submit">
             <span class="spinner"></span>
-            <span>Create account</span>
+            <span>Sign in</span>
           </button>
         </form>
 
         <div class="auth-form-foot">
-          Already have an account?
-          <a href="login.html">Sign in</a>
+          Don't have an account?
+          <a href="register.html">Create one</a>
         </div>
       </div>
     </section>
@@ -381,41 +346,15 @@
   <script>
     (function () {
       var btn = document.getElementById("auth-theme-toggle");
-      if (btn) {
-        btn.addEventListener("click", function () {
-          var cur = document.documentElement.getAttribute("data-theme") || "light";
-          var next = cur === "dark" ? "light" : "dark";
-          document.documentElement.setAttribute("data-theme", next);
-          try { localStorage.setItem("ecb-theme", next); } catch (e) {}
-        });
-      }
-
-      document.querySelectorAll(".auth-pass-toggle").forEach(function (tog) {
-        tog.addEventListener("click", function () {
-          var id = tog.getAttribute("data-pass-toggle");
-          var input = document.getElementById(id);
-          if (!input) return;
-          var show = input.type === "password";
-          input.type = show ? "text" : "password";
-          tog.classList.toggle("is-showing", show);
-        });
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        var cur = document.documentElement.getAttribute("data-theme") || "light";
+        var next = cur === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        try { localStorage.setItem("ecb-theme", next); } catch (e) {}
       });
-
-      var pwInput = document.getElementById("register-password");
-      var meter   = document.getElementById("register-pass-strength");
-      if (pwInput && meter) {
-        pwInput.addEventListener("input", function () {
-          var v = pwInput.value || "";
-          var score = 0;
-          if (v.length >= 8) score++;
-          if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-          if (/\d/.test(v)) score++;
-          if (/[^A-Za-z0-9]/.test(v) && v.length >= 10) score++;
-          meter.className = "auth-pass-strength s-" + score;
-        });
-      }
     })();
   </script>
-  <script src="auth_register.js"></script>
+  <script src="../scripts/auth_login.js"></script>
 </body>
 </html>

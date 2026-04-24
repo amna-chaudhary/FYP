@@ -38,7 +38,7 @@ class AuditLogger:
       - send events to an MCP tool
       - store logs in IPFS
     """
-    def __init__(self, log_path: str = "rag_audit_log.jsonl"):
+    def __init__(self, log_path: str = "rag/logs/rag_audit_log.jsonl"):
         self.log_path = Path(log_path)
 
     @staticmethod

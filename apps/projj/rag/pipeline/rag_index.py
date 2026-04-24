@@ -36,6 +36,7 @@ IGNORED_DIRS = {
     ".nuxt",
     "coverage",
     "gec_rag_index",
+    "index_store",
     ".mypy_cache",
     ".pytest_cache",
 }
@@ -204,4 +205,3 @@ def load_index() -> FAISS:
         embeddings,
         allow_dangerous_deserialization=True,
     )
-
