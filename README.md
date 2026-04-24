@@ -179,7 +179,7 @@ MCP_SERVER_URL="http://127.0.0.1:8002/mcp/invoke"
 
 Do not commit `.env` files. `.gitignore` already ignores `.env`.
 
-## How to Run the Project
+## How to Run the Project (for Mac or Linux) // windows instructions are below
 
 Run each service in a separate terminal.
 
@@ -188,7 +188,8 @@ Run each service in a separate terminal.
 ```bash
 cd ./apps/projj
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate //for linux and mac
+.\.venv\Scripts\Activate.ps1 //for windows
 pip install -r requirements.txt
 export OPENAI_API_KEY="your-openai-api-key"
 export GEC_REPO_PATH="./apps/projj"
@@ -302,213 +303,135 @@ cd ./apps/projj
 python -m http.server 5500
 ```
 
-Then open:
+Here’s your Windows setup rewritten in the same clean, structured format as your original doc:
 
-```text
-http://127.0.0.1:5500/index.html
-```
+---
 
-The frontend sends chat requests to:
+## Project Setup (Windows)
 
-```text
-http://127.0.0.1:3000/api/chat
-```
+Follow these steps to run the full system locally.
 
-## Quick Test Messages
+---
 
-After all services are running, try these in the frontend chat.
+## Prerequisites
 
-### RAG Question Test
+Make sure the following are installed:
 
-```text
-What is a Green Energy Certificate?
-```
+- Python 3.10+
+- Node.js (v18+)
+- MongoDB Atlas (or local MongoDB)
+- Git
 
-Expected behavior:
+---
 
-- Frontend sends request to Node backend.
-- Node routes it to RAG service.
-- RAG service returns an explanation.
-
-### Action Test
-
-```text
-issue 50 solar certificate location Lahore
-```
-
-Expected behavior:
-
-- Frontend sends request to Node backend.
-- Node routes it to action backend.
-- Action backend parses it as `cert_create`.
-- MCP/action backend attempts an Aptos transaction.
-
-This requires correct Aptos environment variables and a funded testnet sender account.
-
-### Marketplace Test
-
-```text
-list cert 1 price 100
-```
-
-Expected behavior:
-
-- Node routes to action backend.
-- Action backend parses it as marketplace listing action.
-- Backend attempts `market_list`.
-
-## API Endpoints
-
-### Node Backend
-
-| Method | Endpoint                  | Purpose            |
-| ------ | ------------------------- | ------------------ |
-| `GET`  | `/`                       | Health check       |
-| `POST` | `/api/chat`               | Main chat route    |
-| `POST` | `/api/auth/register`      | Register user      |
-| `POST` | `/api/auth/login`         | Login user         |
-| `POST` | `/api/auth/verify-otp`    | Verify OTP         |
-| `POST` | `/api/auth/resend-otp`    | Resend OTP         |
-| `GET`  | `/api/auth/me`            | Get logged-in user |
-| `GET`  | `/api/market/stats`       | Marketplace stats  |
-| `POST` | `/api/market/list`        | Create listing     |
-| `POST` | `/api/market/request-buy` | Request buy        |
-| `POST` | `/api/market/accept-buy`  | Accept buy         |
-| `POST` | `/api/market/cancel`      | Cancel listing     |
-
-### RAG Service
-
-| Method | Endpoint       | Purpose                  |
-| ------ | -------------- | ------------------------ |
-| `GET`  | `/`            | Health check             |
-| `POST` | `/chat`        | Ask project/GEC question |
-| `POST` | `/build-index` | Rebuild FAISS index      |
-
-### Action Backend
-
-| Method | Endpoint                           | Purpose                         |
-| ------ | ---------------------------------- | ------------------------------- |
-| `GET`  | `/`                                | Health check                    |
-| `POST` | `/chat`                            | Natural-language action handler |
-| `POST` | `/certificates/init`               | Initialize certificate registry |
-| `POST` | `/certificates/add-issuer`         | Add issuer                      |
-| `POST` | `/certificates/remove-issuer`      | Remove issuer                   |
-| `POST` | `/certificates/create`             | Create certificate              |
-| `POST` | `/certificates/transfer`           | Transfer certificate            |
-| `POST` | `/certificates/claim`              | Claim/retire certificate        |
-| `POST` | `/certificates/cancel`             | Cancel certificate              |
-| `POST` | `/marketplace/init`                | Initialize marketplace          |
-| `POST` | `/marketplace/list`                | List certificate                |
-| `POST` | `/marketplace/cancel`              | Cancel listing                  |
-| `POST` | `/marketplace/request-buy`         | Request buy                     |
-| `POST` | `/marketplace/accept-buy`          | Accept buy request              |
-| `GET`  | `/marketplace/{market_addr}/stats` | Get marketplace stats           |
-| `POST` | `/audit/init`                      | Initialize audit module         |
-| `POST` | `/audit/log`                       | Add audit log                   |
-
-### MCP Proxy
-
-| Method | Endpoint      | Purpose                      |
-| ------ | ------------- | ---------------------------- |
-| `GET`  | `/mcp/tools`  | List OpenAPI tools           |
-| `POST` | `/mcp/invoke` | Invoke a tool by `tool_name` |
-
-## Common Problems
-
-### RAG says index is not loaded
-
-Run:
+## 🔹 1. Start RAG Service
 
 ```bash
-cd ./apps/projj
-source .venv/bin/activate
-export OPENAI_API_KEY="your-openai-api-key"
-export GEC_REPO_PATH="./apps/projj"
-export GEC_INDEX_PATH="rag/index_store/gec_rag_index"
-python build_rag_index.py
-```
+cd C:\FYP\apps\projj
 
-Then restart:
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
 
-```bash
+# Set environment variables
+$env:OPENAI_API_KEY="your-openai-api-key"
+$env:GEC_REPO_PATH="C:\FYP\apps\projj"
+$env:GEC_INDEX_PATH="rag\index_store\gec_rag_index"
+
+# Run service
 uvicorn rag_service:app --host 127.0.0.1 --port 8000
 ```
 
-### Node backend cannot connect to MongoDB
-
-Check `apps/projj/backend/.env`:
+### Check:
 
 ```bash
-MONGO_URI="your-mongodb-uri"
+curl http://127.0.0.1:8000/
 ```
 
-Also make sure MongoDB is running or your cloud MongoDB connection string allows your IP.
+---
 
-### OTP email does not send
-
-Check:
+## 🔹 2. Start Action Backend
 
 ```bash
-GMAIL_USER="your-gmail-address"
-GMAIL_APP_PASSWORD="your-gmail-app-password"
+cd C:\FYP\apps\Gec_Server_C
+
+.\.venv\Scripts\Activate.ps1
+
+uvicorn backend.app:app --host 127.0.0.1 --port 8001
 ```
 
-Use a Gmail App Password, not your normal Gmail password.
+### Check:
 
-### Action backend cannot reach MCP server
+```bash
+curl http://127.0.0.1:8001/
+```
 
-Make sure MCP proxy is running on `8002`:
+---
+
+## 🔹 3. Start MCP Proxy
+
+```bash
+cd C:\FYP\apps\Gec_Server_C
+
+.\.venv\Scripts\Activate.ps1
+
+$env:UNDERLYING_REST_BASE="http://127.0.0.1:8001"
+
+uvicorn mcp_server:app --host 127.0.0.1 --port 8002
+```
+
+### Check:
 
 ```bash
 curl http://127.0.0.1:8002/mcp/tools
 ```
 
-Also make sure action backend env contains:
+---
+
+## 🔹 4. Start Node Backend
 
 ```bash
-MCP_SERVER_URL="http://127.0.0.1:8002/mcp/invoke"
+cd C:\FYP\apps\projj\backend
+
+# Fix DNS issue (Windows)
+$env:NODE_OPTIONS="--dns-result-order=ipv4first"
+
+npm install
+npm run dev
 ```
 
-### MCP proxy cannot find `openapi.json`
-
-Start it from `apps/Gec_Server_C`:
+### Check:
 
 ```bash
-cd ./apps/Gec_Server_C
-uvicorn mcp_server:app --host 127.0.0.1 --port 8002
+curl http://127.0.0.1:3000/
 ```
 
-### Blockchain transaction fails
+---
 
-Check:
+## 🔹 5. Start Frontend
 
-- `APTOS_SENDER_PRIVATE_KEY_HEX` is correct.
-- `APTOS_SENDER_ADDRESS` matches the private key.
-- Sender account has Aptos testnet funds.
-- `MODULE_ADDRESS` points to deployed Move modules.
-- `CERT_REGISTRY_ADDR` and `MARKET_ADDR` are correct.
-- The registry/marketplace has been initialized before calling dependent actions.
+```bash
+cd C:\FYP\apps\projj
 
-## Recommended Run Order
+python -m http.server 5500
+```
 
-Use this order for fewer errors:
-
-1. Start RAG service on `8000`.
-2. Start action backend on `8001`.
-3. Start MCP proxy on `8002`.
-4. Start Node router on `3000`.
-5. Open `apps/projj/frontend/pages/index.html`.
-
-## More Detailed Documentation
-
-For a full file-by-file explanation of the project, read:
+### Open in browser:
 
 ```text
-docs/PROJECT_OVERVIEW.md
+http://127.0.0.1:5500/frontend/landing.html
+http://127.0.0.1:5500/frontend/pages/index.html
 ```
 
-For AI-agent capabilities, ownership, maturity levels, and upgrade priorities, read:
+---
 
-```text
-docs/AGENT_SKILLS.md
-```
+## Run Order
+
+Start services in this order:
+
+1. RAG Service → `8000`
+2. Action Backend → `8001`
+3. MCP Proxy → `8002`
+4. Node Backend → `3000`
+5. Frontend → `5500`
+
+---
