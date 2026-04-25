@@ -15,6 +15,21 @@
   />
 
   <link rel="stylesheet" href="../styles/styles.css" />
+  <script>
+    (function () {
+      try {
+        var userKeys = ["ecb-user", "energycert_user", "user", "gecUser_plain"];
+        var tokenKeys = ["ecb-token", "token", "gecToken_plain"];
+        var hasUser = userKeys.some(function (key) { return !!localStorage.getItem(key); });
+        var hasToken = tokenKeys.some(function (key) { return !!localStorage.getItem(key); });
+        if (!hasUser || !hasToken) {
+          window.location.replace("login.html");
+        }
+      } catch (e) {
+        window.location.replace("login.html");
+      }
+    })();
+  </script>
 
   <!-- ==================================================================
        UI overrides — Gemini-style hub + Claude-style account dropdown.

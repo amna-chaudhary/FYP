@@ -8,6 +8,7 @@
 // Router decides whether request goes to RAG backend or Action backend.
 const API_URL = "http://127.0.0.1:3000/api/chat";
 const AUTH_SSI_URL = "http://localhost:3000/api/auth/ssi-login";
+const AUTH_ME_URL = "http://localhost:3000/api/auth/me";
 
 // -------------------------
 // Local storage keys
@@ -151,10 +152,64 @@ function isAuthenticated() {
   return Boolean(state.user && state.token);
 }
 
-function protectPrivateRoute() {
-  if (isAuthenticated()) return true;
+function redirectToLogin() {
   window.location.replace("login.html");
   return false;
+}
+
+async function validateSession() {
+  if (!state.token) return false;
+
+  try {
+    const res = await fetch(AUTH_ME_URL, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${state.token}`,
+      },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        state.user = null;
+        state.token = null;
+        saveUser();
+      }
+      return false;
+    }
+
+    const data = await res.json();
+    if (!data || !data.success || !data.user) {
+      return false;
+    }
+
+    state.user = {
+      id: data.user.email || data.user._id || data.user.id,
+      name: ((data.user.firstName || "") + " " + (data.user.lastName || "")).trim() || data.user.name || data.user.email,
+      email: data.user.email || null,
+      firstName: data.user.firstName || "",
+      lastName: data.user.lastName || "",
+      role: data.user.role || "Signed in",
+      loggedInAt: state.user?.loggedInAt || new Date().toISOString(),
+    };
+    saveUser();
+    return true;
+  } catch (e) {
+    console.error("Failed to validate session:", e);
+    return false;
+  }
+}
+
+async function protectPrivateRoute() {
+  if (!isAuthenticated()) {
+    return redirectToLogin();
+  }
+
+  const valid = await validateSession();
+  if (!valid) {
+    return redirectToLogin();
+  }
+
+  return true;
 }
 
 function markdownToHtml(text) {

@@ -7,11 +7,11 @@
 //       and the menu appears to do nothing.
 // ---------------------------------------------------------------
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // ── Restore persisted state ────────────────────────────────────
   if (typeof loadFromStorage === "function") loadFromStorage();
   if (typeof loadUser === "function") loadUser();
-  if (typeof protectPrivateRoute === "function" && !protectPrivateRoute()) return;
+  if (typeof protectPrivateRoute === "function" && !(await protectPrivateRoute())) return;
 
   // ── DOM refs ───────────────────────────────────────────────────
   const btnNewChat      = document.getElementById("btn-new-chat");
