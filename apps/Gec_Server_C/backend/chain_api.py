@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -23,8 +27,8 @@ class TxRequest(BaseModel):
 class TxResponse(BaseModel):
     tx_hash: str
     success: bool
-    vm_status: str | None = None
-    explorer_url: str | None = None
+    vm_status: Optional[str] = None
+    explorer_url: Optional[str] = None
 
 
 def _unwrap_view_scalar(x, default=0):
@@ -56,7 +60,7 @@ class CreateCertificateRequest(TxRequest):
     energy_source: str
     energy_amount: int
     location: str
-    owner: str | None = None
+    owner: Optional[str] = None
     device_id: str = "device-demo"
     prod_start: str = ""
     prod_end: str = ""
@@ -67,7 +71,7 @@ class TransferCertificateRequest(TxRequest):
     registry_addr: str = DEFAULT_REGISTRY_ADDR
     cert_id: int
     recipient: str
-    quantity: int | None = None
+    quantity: Optional[int] = None
     note: str = "api transfer"
 
 
