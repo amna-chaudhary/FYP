@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCP Certificate Card</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="mcp-card.css" />
+</head>
+<body>
+
+  <!--
+    This page has NO chatbot UI.
+    It exists only to render the MCP certificate card so you can
+    preview it and confirm it still works after the cleanup.
+
+    To use the card inside your real chatbot (the 2 "new" files):
+      1. Include  mcp-card.css  in your page.
+      2. Include  mcp-card.js   in your page.
+      3. When the backend returns an mcp_result, call:
+
+           const html = MCPCard.format(mcp_response.body);
+           // then append `html` into your chat bubble.
+
+         or render directly into a DOM element:
+
+           MCPCard.render(mcp_response.body, someDivElement);
+  -->
+
+  <div class="demo-container">
+    <h1 class="demo-title">MCP Certificate Card</h1>
+    <p class="demo-lead">
+      Click a button to render a sample certificate card.
+      Use <code>MCPCard.format(body)</code> or
+      <code>MCPCard.render(body, element)</code> from your own
+      chatbot code to display the same card when the backend
+      returns an MCP response.
+    </p>
+
+    <div class="demo-actions">
+      <button class="demo-btn" data-sample="issue">⚡ Issue (Solar)</button>
+      <button class="demo-btn" data-sample="transfer">🔁 Transfer</button>
+      <button class="demo-btn" data-sample="retire">🪪 Retire</button>
+      <button class="demo-btn" data-sample="query">📊 Query Balance</button>
+      <button class="demo-btn" data-sample="aptos">✅ Aptos TX</button>
+      <button class="demo-btn danger" data-sample="error">⚠️ Error</button>
+    </div>
+
+    <div id="card-output" class="demo-output">
+      <div class="demo-empty">Click a button above to render a card here.</div>
+    </div>
+  </div>
+
+  <script src="mcp-card.js"></script>
+  <script>
+    // Sample MCP response bodies (matches what the old backend returned).
+    const samples = {
+      issue: {
+        action: "issue_gecs",
+        status: "success",
+        issued_quantity: 50,
+        account_id:  "acct-solar-pk-001",
+        device_id:   "device-solar-007",
+        energy_source: "solar",
+        time_window: {
+          from: "2025-01-01T00:00:00Z",
+          to:   "2025-01-31T23:59:59Z"
+        },
+        message: "50 GECs issued for solar generation at the Punjab site."
+      },
+
+      transfer: {
+        action: "transfer_gecs",
+        status: "success",
+        transferred_quantity: 25,
+        source_account_id: "acct-generator-01",
+        target_account_id: "acct-buyer-42",
+        message: "25 GECs transferred to corporate buyer."
+      },
+
+      retire: {
+        action: "retire_gecs",
+        status: "success",
+        retired_quantity: 10,
+        account_id: "acct-buyer-42",
+        reason: "2025 Sustainability report offset",
+        message: "10 GECs retired and removed from circulation."
+      },
+
+      query: {
+        action: "query_gecs",
+        status: "success",
+        results: [
+          { quantity: 30, energy_source: "solar", device_id: "dev-01", account_id: "acct-007" },
+          { quantity: 20, energy_source: "wind",  device_id: "dev-02", account_id: "acct-007" },
+          { quantity: 15, energy_source: "hydro", device_id: "dev-03", account_id: "acct-007" }
+        ],
+        message: "Current holdings for account acct-007."
+      },
+
+      aptos: {
+        tx_hash: "0xabc123def4567890abcdef1234567890abcdef1234567890abcdef1234567890",
+        success: true,
+        vm_status: "Executed successfully",
+        explorer_url: "https://explorer.aptoslabs.com/txn/0xabc123"
+      },
+
+      error: {
+        action: "issue_gecs",
+        status: "error",
+        detail: "Missing required field: device_id"
+      }
+    };
+
+    const output = document.getElementById("card-output");
+
+    document.querySelectorAll(".demo-btn[data-sample]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const key  = btn.dataset.sample;
+        const body = samples[key];
+        MCPCard.render(body, output);
+      });
+    });
+  </script>
+</body>
+</html>

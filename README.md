@@ -392,10 +392,10 @@ curl http://127.0.0.1:8002/mcp/tools
 ```bash
 cd C:\FYP\apps\projj\backend
 
-# Fix DNS issue (Windows)
-$env:NODE_OPTIONS="--dns-result-order=ipv4first"
+# Fix DNS issue (Windows) //run these 2 commands only if you get an dns error
+//$env:NODE_OPTIONS="--dns-result-order=ipv4first"
+//npm install
 
-npm install
 npm run dev
 ```
 
@@ -412,7 +412,7 @@ curl http://127.0.0.1:3000/
 ```bash
 cd C:\FYP\apps\projj
 
-python -m http.server 5500
+./apps/projj/frontend/pages/index.html
 ```
 
 ### Open in browser:

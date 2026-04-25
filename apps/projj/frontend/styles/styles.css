@@ -5534,3 +5534,23 @@ blockquote {
     height: 220px;
   }
 }
+
+/* ============================================
+   Global Brand Mark Logo Style
+   ============================================ */
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal-50), #ffffff);
+  box-shadow: inset 0 0 0 1.5px var(--teal-200), 0 4px 10px rgba(0, 152, 139, 0.15);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.brand-mark img { width: 82%; height: 82%; object-fit: contain; }
+[data-theme="dark"] .brand-mark {
+  background: linear-gradient(135deg, var(--surface-muted), var(--surface));
+  box-shadow: inset 0 0 0 1.5px var(--teal-700), 0 4px 10px rgba(0, 0, 0, 0.5);
+}
