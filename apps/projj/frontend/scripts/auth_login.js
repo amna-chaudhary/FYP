@@ -4,11 +4,13 @@
   const API_BASE     = "http://localhost:3000/api/auth";
   const USER_KEY     = "ecb-user";
   const TOKEN_KEY    = "ecb-token";
+  const DEVICE_KEY   = "ecb-device-token";
+  const OTP_CONTEXT_KEY = "ecb-otp-context";
 
   const form      = document.getElementById("login-form");
   const banner    = document.getElementById("auth-banner");
   const submitBtn = document.getElementById("auth-submit");
-  const idField   = document.getElementById("login-email");
+  const idField   = document.getElementById("login-identifier");
   const passField = document.getElementById("login-password");
 
   document.querySelectorAll(".auth-pass-toggle").forEach(function (btn) {
@@ -35,6 +37,40 @@
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(record));
     } catch (e) {}
+  }
+
+  function saveDeviceToken(deviceToken) {
+    if (!deviceToken) return;
+    try {
+      localStorage.setItem(DEVICE_KEY, deviceToken);
+    } catch (e) {}
+  }
+
+  function readDeviceToken() {
+    try {
+      return localStorage.getItem(DEVICE_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function storeOtpContext(context) {
+    try {
+      sessionStorage.setItem(OTP_CONTEXT_KEY, JSON.stringify(context));
+    } catch (e) {}
+  }
+
+  async function resendOtp(email, purpose) {
+    const res = await fetch(`${API_BASE}/resend-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, purpose }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Failed to resend verification code.");
+    }
+    showBanner("success", "A new verification code has been sent to your email.");
   }
 
   function showBanner(type, message) {
@@ -85,10 +121,15 @@
     submitBtn.disabled = true;
 
     try {
+      const deviceToken = readDeviceToken();
       const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: identifier.toLowerCase(), password }),
+        body: JSON.stringify({
+          email: identifier.toLowerCase(),
+          password,
+          deviceToken,
+        }),
       });
 
       const data = await res.json();
@@ -97,7 +138,28 @@
         throw new Error(data.error || "Invalid credentials.");
       }
 
-      saveSession(data.token, data.user);
+      let finalData = data;
+      if (data.nextStep === "verify-otp") {
+        showBanner("success", data.message || "Verification required. Check your email for the code.");
+        storeOtpContext({
+          email: data.email,
+          purpose: data.purpose,
+          source: "login",
+          successRedirect: "index.html",
+          cancelRedirect: "login.html",
+        });
+        setTimeout(function () {
+          window.location.href = "otp.html";
+        }, 350);
+        return;
+      }
+
+      if (!finalData.token || !finalData.user) {
+        throw new Error("Login did not return a valid session.");
+      }
+
+      saveSession(finalData.token, finalData.user);
+      saveDeviceToken(finalData.deviceToken);
 
       showBanner("success", "Signed in. Redirecting\u2026");
       form.classList.add("is-success");
@@ -120,6 +182,7 @@
     try {
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(DEVICE_KEY);
     } catch (e) {}
     window.location.href = "login.html";
   };

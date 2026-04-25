@@ -26,9 +26,10 @@ apps/projj/
 │   ├── data/
 │   ├── index_store/
 │   └── logs/
-├── index.html               # redirect -> frontend/pages/index.html
+├── index.html               # redirect -> frontend/pages/landing.html
 ├── landing.html             # redirect -> frontend/pages/landing.html
 ├── login.html               # redirect -> frontend/pages/login.html
+├── otp.html                 # redirect -> frontend/pages/otp.html
 ├── register.html            # redirect -> frontend/pages/register.html
 ├── rag_service.py           # compatibility wrapper
 ├── build_rag_index.py       # compatibility wrapper
@@ -57,7 +58,7 @@ apps/projj/
 
 Backward-compatible entry points are kept at app root:
 
-- `apps/projj/index.html` redirects to `frontend/pages/index.html`
+- `apps/projj/index.html` redirects to `frontend/pages/landing.html`
 - `apps/projj/rag_service.py` re-exports service objects
 - `apps/projj/build_rag_index.py` re-exports index builder script
 
