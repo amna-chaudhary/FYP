@@ -15,6 +15,8 @@ const AUTH_SSI_URL = "http://localhost:3000/api/auth/ssi-login";
 const STORAGE_KEY = "gec_chat_state_v2";
 const USER_KEY = "gecUser_plain";
 const TOKEN_KEY = "gecToken_plain";
+const AUTH_USER_KEYS = ["ecb-user", "energycert_user", "user", USER_KEY];
+const AUTH_TOKEN_KEYS = ["ecb-token", "token", TOKEN_KEY];
 
 // -------------------------
 // Global state
@@ -107,11 +109,23 @@ function saveToStorage() {
 
 function loadUser() {
   try {
-    const raw = localStorage.getItem(USER_KEY);
-    if (raw) state.user = JSON.parse(raw);
+    let rawUser = null;
+    for (const key of AUTH_USER_KEYS) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        rawUser = value;
+        break;
+      }
+    }
+    if (rawUser) state.user = JSON.parse(rawUser);
 
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) state.token = token;
+    for (const key of AUTH_TOKEN_KEYS) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        state.token = value;
+        break;
+      }
+    }
   } catch (e) {
     console.error("Failed to load user:", e);
   }
@@ -119,14 +133,28 @@ function loadUser() {
 
 function saveUser() {
   try {
-    if (state.user) localStorage.setItem(USER_KEY, JSON.stringify(state.user));
-    else localStorage.removeItem(USER_KEY);
+    for (const key of AUTH_USER_KEYS) {
+      if (state.user) localStorage.setItem(key, JSON.stringify(state.user));
+      else localStorage.removeItem(key);
+    }
 
-    if (state.token) localStorage.setItem(TOKEN_KEY, state.token);
-    else localStorage.removeItem(TOKEN_KEY);
+    for (const key of AUTH_TOKEN_KEYS) {
+      if (state.token) localStorage.setItem(key, state.token);
+      else localStorage.removeItem(key);
+    }
   } catch (e) {
     console.error("Failed to save user:", e);
   }
+}
+
+function isAuthenticated() {
+  return Boolean(state.user && state.token);
+}
+
+function protectPrivateRoute() {
+  if (isAuthenticated()) return true;
+  window.location.replace("login.html");
+  return false;
 }
 
 function markdownToHtml(text) {

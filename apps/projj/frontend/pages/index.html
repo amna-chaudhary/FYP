@@ -1326,6 +1326,8 @@
       function doLogout() {
         try { 
           localStorage.removeItem("ecb-user");
+          localStorage.removeItem("ecb-token");
+          localStorage.removeItem("ecb-device-token");
           localStorage.removeItem("energycert_user");
           localStorage.removeItem("user");
           localStorage.removeItem("gecUser_plain");

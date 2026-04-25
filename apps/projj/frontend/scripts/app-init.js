@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── Restore persisted state ────────────────────────────────────
   if (typeof loadFromStorage === "function") loadFromStorage();
   if (typeof loadUser === "function") loadUser();
+  if (typeof protectPrivateRoute === "function" && !protectPrivateRoute()) return;
 
   // ── DOM refs ───────────────────────────────────────────────────
   const btnNewChat      = document.getElementById("btn-new-chat");

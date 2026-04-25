@@ -574,19 +574,10 @@
       display: flex;
       align-items: center;
     }
-    .auth-input-icon {
-      position: absolute;
-      left: 12px;
-      width: 14px;
-      height: 14px;
-      color: var(--auth-text-faint);
-      pointer-events: none;
-      transition: color 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
     .auth-input {
       width: 100%;
       height: 42px;
-      padding: 0 40px 0 36px;
+      padding: 0 40px 0 14px;
       border: 1.5px solid var(--auth-border);
       border-radius: 10px;
       background: var(--auth-surface);
@@ -601,10 +592,6 @@
       border-color: var(--auth-primary);
       box-shadow: 0 0 0 4px var(--auth-primary-ring);
       transform: translateY(-1px);
-    }
-    .auth-input-wrap:focus-within .auth-input-icon {
-      color: var(--auth-primary);
-      transform: scale(1.15);
     }
     .auth-input::placeholder { color: var(--auth-text-faint); }
     .auth-field.is-invalid .auth-input {
@@ -910,7 +897,6 @@
               <label class="auth-field">
                 <span class="auth-field-label">First name</span>
                 <div class="auth-input-wrap">
-                  <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <input id="register-first-name" class="auth-input" type="text" autocomplete="given-name" placeholder="Ada" required />
                 </div>
               </label>
@@ -918,7 +904,6 @@
               <label class="auth-field">
                 <span class="auth-field-label">Last name</span>
                 <div class="auth-input-wrap">
-                  <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <input id="register-last-name" class="auth-input" type="text" autocomplete="family-name" placeholder="Lovelace" required />
                 </div>
               </label>
@@ -927,7 +912,6 @@
             <label class="auth-field">
               <span class="auth-field-label">Email</span>
               <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/><path d="M4 7l8 6 8-6"/></svg>
                 <input id="register-email" class="auth-input" type="email" autocomplete="email" placeholder="you@company.com" required />
               </div>
             </label>
@@ -935,7 +919,6 @@
             <label class="auth-field">
               <span class="auth-field-label">Password</span>
               <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 <input id="register-password" class="auth-input" type="password" autocomplete="new-password" placeholder="At least 8 characters" required />
                 <button type="button" class="auth-pass-toggle" data-pass-toggle="register-password" aria-label="Show password">
                   <svg class="icon-show" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -949,7 +932,6 @@
             <label class="auth-field">
               <span class="auth-field-label">Confirm password</span>
               <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 <input id="register-confirm-password" class="auth-input" type="password" autocomplete="new-password" placeholder="Re-enter password" required />
                 <button type="button" class="auth-pass-toggle" data-pass-toggle="register-confirm-password" aria-label="Show password">
                   <svg class="icon-show" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>

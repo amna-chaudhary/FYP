@@ -569,19 +569,10 @@
       display: flex;
       align-items: center;
     }
-    .auth-input-icon {
-      position: absolute;
-      left: 12px;
-      width: 14px;
-      height: 14px;
-      color: var(--auth-text-faint);
-      pointer-events: none;
-      transition: color 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
     .auth-input {
       width: 100%;
       height: 42px;
-      padding: 0 40px 0 36px;
+      padding: 0 40px 0 14px;
       border: 1.5px solid var(--auth-border);
       border-radius: 10px;
       background: var(--auth-surface);
@@ -597,10 +588,6 @@
       box-shadow: 0 0 0 4px var(--auth-primary-ring);
       transform: translateY(-1px);
     }
-    .auth-input-wrap:focus-within .auth-input-icon {
-      color: var(--auth-primary);
-      transform: scale(1.15);
-    }
     .auth-input::placeholder { color: var(--auth-text-faint); }
     .auth-field.is-valid .auth-input {
       border-color: var(--auth-primary);
@@ -610,7 +597,6 @@
       box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.10);
       animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
     }
-    .auth-field.is-invalid .auth-input-icon { color: var(--auth-error); }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%      { transform: translateX(-5px); }
@@ -996,7 +982,6 @@
             <label class="auth-field">
               <span class="auth-field-label">Email or username</span>
               <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><polyline points="22,8 12,14 2,8"/></svg>
                 <input id="login-identifier" class="auth-input" type="text" autocomplete="username" placeholder="you@company.com" required autofocus />
               </div>
             </label>
@@ -1004,7 +989,6 @@
             <label class="auth-field">
               <span class="auth-field-label">Password</span>
               <div class="auth-input-wrap">
-                <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="Your password" required />
                 <button type="button" class="auth-pass-toggle" data-pass-toggle="login-password" aria-label="Show password">
                   <svg class="icon-show" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
