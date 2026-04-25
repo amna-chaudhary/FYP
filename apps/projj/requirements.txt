@@ -3,7 +3,11 @@ ipykernel
 langchain-community
 langchain-text-splitters
 langchain-ollama
+langchain-openai
 chromadb
 langchain_chroma
 python-dotenv
 streamlit
+fastapi
+uvicorn
+pydantic
