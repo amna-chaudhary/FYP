@@ -1,0 +1,264 @@
+/* =============================================================
+   MCP Certificate Card — Styles
+   Only the styles needed to render the green certificate card
+   produced by MCPCard.format() / MCPCard.render() in mcp-card.js
+   ============================================================= */
+
+/* ---------- Required CSS variables ---------- */
+:root {
+  --mcp-card-border: #bbf7d0;
+  --mcp-card-shadow: 0 10px 30px rgba(34, 197, 94, 0.25);
+  --mcp-success: #16a34a;
+  --mcp-error:   #b91c1c;
+  --mcp-soft:    #ecfdf3;
+  --mcp-muted:   #6b7280;
+}
+
+/* ---------- The card itself ---------- */
+.mcp-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 14px 10px;
+  box-shadow: var(--mcp-card-shadow);
+  border: 1px solid var(--mcp-card-border);
+  font-size: 13px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 4px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #111827;
+}
+
+.mcp-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-top: 3px solid rgba(34, 197, 94, 0.7);
+  pointer-events: none;
+}
+
+/* ---------- Header ---------- */
+.mcp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.mcp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mcp-header-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.mcp-header-title { font-size: 13px; }
+
+.mcp-header.success .mcp-header-title { color: var(--mcp-success); }
+.mcp-header.error   .mcp-header-title { color: var(--mcp-error);   }
+
+.mcp-tag {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* ---------- Primary row (big number + label) ---------- */
+.mcp-main-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  margin-top: 2px;
+}
+
+.mcp-primary-number {
+  font-size: 26px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.mcp-primary-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mcp-muted);
+}
+
+/* ---------- Info grid ---------- */
+.mcp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin-bottom: 8px;
+}
+
+.mcp-field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mcp-muted);
+}
+
+.mcp-field-value {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---------- Footer (message + badges) ---------- */
+.mcp-footer {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 11px;
+  color: var(--mcp-muted);
+}
+
+.mcp-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mcp-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* ---------- Balance list (query_gecs result) ---------- */
+.mcp-balance-list {
+  margin-top: 4px;
+  border-radius: 9px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  max-height: 160px;
+  overflow: auto;
+  background: #f9fafb;
+}
+
+.mcp-balance-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.mcp-balance-item span.key { color: var(--mcp-muted); }
+.mcp-balance-item span.val { font-weight: 600; }
+
+/* =============================================================
+   Demo-page styles (only used by mcp-card.html to preview the
+   card). You can delete this whole block if you're importing
+   mcp-card.css into your main chatbot — the card itself does
+   not depend on any of these rules.
+   ============================================================= */
+
+body {
+  margin: 0;
+  padding: 40px 20px;
+  background:
+    radial-gradient(circle at top left,  rgba(210, 230, 195, 0.8), transparent 55%),
+    radial-gradient(circle at top right, rgba(199, 224, 180, 0.7), transparent 60%),
+    linear-gradient(to bottom, #f9fafb, #f3f6ec 60%, #e5e7eb 100%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #111827;
+  min-height: 100vh;
+}
+
+.demo-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.demo-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #111827;
+}
+
+.demo-lead {
+  margin: 0 0 24px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.demo-lead code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.demo-btn {
+  border: 1px solid #bbf7d0;
+  background: #ecfdf3;
+  color: #166534;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  font-family: inherit;
+}
+
+.demo-btn:hover {
+  background: #dcfce7;
+  transform: translateY(-1px);
+}
+
+.demo-btn.danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.demo-btn.danger:hover {
+  background: #fee2e2;
+}
+
+.demo-output {
+  min-height: 100px;
+}
+
+.demo-empty {
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
