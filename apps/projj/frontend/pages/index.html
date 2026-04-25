@@ -16,6 +16,618 @@
 
   <link rel="stylesheet" href="../styles/styles.css" />
 
+  <!-- ==================================================================
+       UI overrides — Gemini-style hub + Claude-style account dropdown.
+       ================================================================== -->
+  <style>
+    /* ============================================================
+       HERO — Gemini-style centered hub
+       ============================================================ */
+    .hero-inner {
+      padding: 48px 36px 36px;
+      max-width: 860px;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 3.4vw + 0.9rem, 2.85rem);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .hero-title::after { display: none; }
+
+    .hero-subtitle {
+      font-size: 0.98rem;
+      max-width: 620px;
+      margin: 16px auto 28px;
+    }
+
+    /* Big rounded pill input */
+    .hero-input {
+      max-width: 760px;
+      padding: 12px 12px 12px 22px;
+      border-radius: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 4px 18px -8px rgba(15, 23, 42, 0.12);
+      transition:
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease,
+        transform 0.22s ease;
+    }
+    [data-theme="dark"] .hero-input {
+      background: var(--surface-raised);
+      box-shadow: 0 4px 18px -8px rgba(0, 0, 0, 0.4);
+    }
+    .hero-input:hover {
+      border-color: var(--teal-200);
+      box-shadow: 0 8px 24px -10px rgba(0, 152, 139, 0.22);
+    }
+    [data-theme="dark"] .hero-input:hover {
+      border-color: rgba(0, 152, 139, 0.4);
+    }
+    .hero-input:focus-within {
+      border-color: var(--teal-300);
+      box-shadow:
+        0 0 0 4px rgba(0, 152, 139, 0.15),
+        0 10px 28px -10px rgba(0, 152, 139, 0.3);
+      transform: translateY(-1px);
+    }
+    .hero-input textarea {
+      font-size: 1rem;
+      padding: 6px 0;
+      min-height: 32px;
+    }
+
+    /* ============================================================
+       SEND BUTTON — perfectly centered up-arrow with animation
+       (replaces the old right-pointing arrow that looked off)
+       ============================================================ */
+    .hero-input .send-btn {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      padding: 0;
+      gap: 0;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+      transition:
+        transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+        box-shadow 0.22s ease,
+        background 0.22s ease;
+    }
+    .hero-input .send-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .hero-input .send-btn:hover:not(:disabled) {
+      transform: translateY(-1.5px) scale(1.06);
+      box-shadow: 0 10px 22px -6px rgba(0, 152, 139, 0.5);
+    }
+    .hero-input .send-btn:hover:not(:disabled) svg {
+      transform: translateY(-2px);
+    }
+    .hero-input .send-btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* ============================================================
+       QUICK ACTION CHIPS
+       ============================================================ */
+    .hero-quick-actions {
+      margin-top: 22px;
+      margin-bottom: 0;
+      gap: 10px;
+    }
+    .hero-chip {
+      padding: 10px 20px;
+      font-size: 0.86rem;
+      border-radius: 999px;
+      background: var(--surface);
+      border-color: var(--border);
+      box-shadow: 0 2px 6px -3px rgba(15, 23, 42, 0.08);
+    }
+    [data-theme="dark"] .hero-chip {
+      box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================================
+       SIDEBAR ACCOUNT SECTION — Claude-style trigger + dropdown
+       ============================================================ */
+
+    /* Hide the old red logout button (no longer used) */
+    .sb-logout-btn { display: none !important; }
+
+    .sb-account-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    /* Account trigger button (avatar + name + chevron) */
+    .sb-account {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: var(--surface-muted);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+      transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .sb-account:hover {
+      background: var(--surface);
+      border-color: var(--border);
+      box-shadow: 0 4px 12px -6px rgba(15, 23, 42, 0.12);
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .sb-account:hover {
+      box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.4);
+    }
+    .sb-account[aria-expanded="true"] {
+      background: var(--surface);
+      border-color: var(--teal-200);
+      box-shadow: 0 4px 14px -6px rgba(0, 152, 139, 0.25);
+    }
+    [data-theme="dark"] .sb-account[aria-expanded="true"] {
+      border-color: rgba(0, 152, 139, 0.4);
+    }
+    .sb-account:focus-visible {
+      outline: none;
+      border-color: var(--teal-300);
+      box-shadow: 0 0 0 3px rgba(0, 152, 139, 0.18);
+    }
+
+    /* Avatar circle with initials */
+    .sb-account-avatar {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--teal-500) 0%, var(--teal-600) 65%, var(--teal-700) 130%);
+      box-shadow:
+        0 3px 8px rgba(0, 152, 139, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      animation: avatar-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .sb-account:hover .sb-account-avatar {
+      transform: scale(1.05) rotate(-3deg);
+    }
+
+    /* Name + role text */
+    .sb-account-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      line-height: 1.2;
+    }
+    .sb-account-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sb-account-role {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Chevron — rotates when menu opens */
+    .sb-account-chevron {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      color: var(--text-soft);
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
+    }
+    .sb-account:hover .sb-account-chevron {
+      color: var(--primary-dark);
+    }
+    [data-theme="dark"] .sb-account:hover .sb-account-chevron {
+      color: var(--primary);
+    }
+    .sb-account[aria-expanded="true"] .sb-account-chevron {
+      transform: rotate(180deg);
+      color: var(--primary-dark);
+    }
+    [data-theme="dark"] .sb-account[aria-expanded="true"] .sb-account-chevron {
+      color: var(--primary);
+    }
+
+    /* ============================================================
+       ACCOUNT DROPDOWN MENU
+       ============================================================ */
+    .sb-account-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow:
+        0 14px 36px -10px rgba(15, 23, 42, 0.25),
+        0 4px 12px -4px rgba(15, 23, 42, 0.1);
+      padding: 6px;
+      display: none;
+      z-index: 30;
+      transform-origin: bottom center;
+    }
+    [data-theme="dark"] .sb-account-menu {
+      box-shadow:
+        0 16px 40px -10px rgba(0, 0, 0, 0.6),
+        0 4px 14px -4px rgba(0, 0, 0, 0.4);
+    }
+    .sb-account-menu.open {
+      display: block;
+      animation: menu-slide-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Menu header (avatar + name + status) */
+    .sb-account-menu-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 10px 12px;
+    }
+    .sb-account-avatar--lg {
+      width: 40px;
+      height: 40px;
+      font-size: 0.86rem;
+      animation: none;
+    }
+    .sb-account-menu-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sb-account-menu-status {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      margin-top: 3px;
+    }
+
+    .sb-account-menu-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 2px 4px 4px;
+    }
+
+    /* Menu items (Settings, Log out) */
+    .sb-account-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      text-align: left;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+      transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        padding-left 0.18s ease;
+    }
+    .sb-account-menu-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--text-soft);
+      transition: color 0.18s ease, transform 0.22s ease;
+    }
+    .sb-account-menu-item:hover {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      padding-left: 14px;
+    }
+    .sb-account-menu-item:hover svg {
+      color: var(--primary-dark);
+      transform: scale(1.08);
+    }
+    [data-theme="dark"] .sb-account-menu-item:hover {
+      color: var(--primary);
+    }
+    [data-theme="dark"] .sb-account-menu-item:hover svg {
+      color: var(--primary);
+    }
+
+    .sb-account-menu-item--danger {
+      color: var(--danger);
+    }
+    .sb-account-menu-item--danger svg {
+      color: var(--danger);
+    }
+    .sb-account-menu-item--danger:hover {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+    .sb-account-menu-item--danger:hover svg {
+      color: var(--danger);
+    }
+
+    /* Stagger menu item entrance */
+    .sb-account-menu.open .sb-account-menu-item {
+      animation: menu-item-fade 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .sb-account-menu.open .sb-account-menu-item:nth-of-type(1) {
+      animation-delay: 0.06s;
+    }
+    .sb-account-menu.open .sb-account-menu-item:nth-of-type(2) {
+      animation-delay: 0.12s;
+    }
+
+    /* Hide the old kebab user-panel structure (kept in DOM only for legacy JS refs) */
+    .sb-user-row > .sb-user-avatar,
+    .sb-user-row > .sb-user-name,
+    .sb-user-row > .sb-user-menu-btn,
+    .sb-user-row > .sb-user-menu {
+      display: none !important;
+    }
+
+    /* ============================================================
+       ANIMATIONS
+       ============================================================ */
+    @keyframes menu-slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    @keyframes menu-item-fade {
+      from {
+        opacity: 0;
+        transform: translateX(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes avatar-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* ============================================================
+       INFO MODALS (Help & About)
+       ============================================================ */
+    .info-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      padding: 20px;
+    }
+    .info-modal.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 580px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+      transform: translateY(20px) scale(0.98);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      overflow: hidden;
+    }
+    [data-theme="dark"] .info-card {
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    }
+    .info-modal.is-open .info-card {
+      transform: translateY(0) scale(1);
+    }
+    .info-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-muted);
+    }
+    .info-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text-strong);
+    }
+    .info-close-btn {
+      font-size: 1.5rem;
+      color: var(--text-soft);
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .info-close-btn:hover {
+      color: var(--text-strong);
+    }
+    .info-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    /* Custom Scrollbar for Info Body */
+    .info-body::-webkit-scrollbar {
+      width: 8px;
+    }
+    .info-body::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 4px;
+    }
+    .info-body::-webkit-scrollbar-thumb:hover {
+      background: var(--text-soft);
+    }
+    .info-section {
+      margin-bottom: 24px;
+      background: var(--surface-muted);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+    .info-section:last-child {
+      margin-bottom: 0;
+    }
+    .info-section h3 {
+      font-size: 1.05rem;
+      margin: 0 0 10px 0;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .info-section h3 {
+      color: var(--primary);
+    }
+    .info-section p {
+      margin: 0 0 8px 0;
+    }
+    .info-section p:last-child {
+      margin-bottom: 0;
+    }
+    .info-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      background: var(--surface);
+    }
+    .info-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .info-btn-primary {
+      background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+      color: #fff;
+      border: none;
+    }
+    .info-btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 152, 139, 0.3);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1080px) {
+      .sb-account { padding: 7px 9px; gap: 9px; }
+      .sb-account-avatar { width: 32px; height: 32px; font-size: 0.74rem; }
+      .sb-account-name { font-size: 0.84rem; }
+      .sb-account-role { font-size: 0.68rem; }
+    }
+
+    @media (max-width: 720px) {
+      .sb-account-menu { padding: 5px; }
+      .sb-account-menu-item { padding: 11px 12px; font-size: 0.88rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-inner { padding: 32px 22px 26px; }
+      .hero-input {
+        padding: 8px 8px 8px 18px;
+        border-radius: 26px;
+      }
+      .hero-input .send-btn {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+      }
+      .hero-input .send-btn svg { width: 16px; height: 16px; }
+      .hero-chip { padding: 9px 16px; font-size: 0.82rem; }
+
+      .sb-account { padding: 8px 10px; }
+      .sb-account-avatar { width: 32px; height: 32px; }
+      .sb-account-info { gap: 0; }
+      .sb-account-role { font-size: 0.66rem; }
+    }
+
+    /* Reduced-motion users get instant transitions */
+    @media (prefers-reduced-motion: reduce) {
+      .sb-account-avatar,
+      .sb-account-menu.open,
+      .sb-account-menu.open .sb-account-menu-item,
+      .hero-input .send-btn,
+      .hero-input .send-btn svg,
+      .sb-account-chevron {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+
   <script>
     (function() {
       try {
@@ -44,10 +656,11 @@
       <aside class="sidebar">
         <div class="sb-top">
           <div class="brand">
-            <img src="../assets/logo1.png" class="brand-logo" alt="EnergyCert Logo" />
+            <div class="brand-mark">
+              <img src="../assets/logo1.png" alt="EnergyCert Logo" />
+            </div>
             <div class="brand-text">
               <span class="brand-title">EnergyCert Bot</span>
-              <span class="brand-subtitle">AI · Aptos · Registry</span>
             </div>
           </div>
         </div>
@@ -76,137 +689,87 @@
         <div class="history" id="history-list"></div>
 
         <div class="sb-bottom">
-          <div class="sb-user-panel" id="sb-user-panel">
+
+          <!-- Legacy DOM nodes preserved (hidden via CSS) so other JS that
+               looks them up by ID doesn't break. -->
+          <div class="sb-user-panel" id="sb-user-panel" hidden>
             <div class="sb-user-row">
-
-              <div class="sb-user-avatar" id="sb-user-avatar" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-
-              <span class="sb-user-name" id="sb-user-name">User</span>
-
-              <button
-                class="sb-user-menu-btn"
-                id="sb-user-menu-btn"
-                type="button"
-                aria-label="Open user menu"
-                aria-haspopup="true"
-                aria-expanded="false"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <circle cx="12" cy="5" r="1.8"/>
-                  <circle cx="12" cy="12" r="1.8"/>
-                  <circle cx="12" cy="19" r="1.8"/>
-                </svg>
-              </button>
-
-              <div class="sb-user-menu" id="sb-user-menu" role="menu">
-
-                <!-- Panel 1: MAIN -->
-                <div class="sb-user-menu-panel sb-user-menu-panel--main" data-panel="main">
-
-                  <div class="sb-user-menu-header">
-                    <div class="sb-user-menu-header-avatar" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
-                    </div>
-                    <div class="sb-user-menu-header-info">
-                      <span class="sb-user-menu-header-name" id="sb-user-menu-name">User</span>
-                      <span class="sb-user-menu-header-role" id="sb-user-menu-role">Signed in</span>
-                    </div>
-                  </div>
-
-                  <div class="sb-user-menu-divider"></div>
-
-                  <button class="sb-user-menu-item sb-user-menu-item--has-sub" id="btn-open-settings" type="button" role="menuitem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="3"/>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                    <span>Settings</span>
-                    <svg class="sb-user-menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="9 6 15 12 9 18"/>
-                    </svg>
-                  </button>
-
-                  <div class="sb-user-menu-divider"></div>
-
-                  <button class="sb-user-menu-item sb-user-menu-item--danger" id="btn-logout" type="button" role="menuitem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                      <polyline points="16 17 21 12 16 7"/>
-                      <line x1="21" y1="12" x2="9" y2="12"/>
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-
-                <!-- Panel 2: SETTINGS -->
-                <div class="sb-user-menu-panel sb-user-menu-panel--settings" data-panel="settings">
-
-                  <div class="sb-user-menu-sub-header">
-                    <button class="sb-user-menu-back" id="btn-settings-back" type="button" aria-label="Back">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 18 9 12 15 6"/>
-                      </svg>
-                    </button>
-                    <span class="sb-user-menu-sub-title">Settings</span>
-                  </div>
-
-                  <div class="sb-user-menu-divider"></div>
-
-                  <div class="sb-user-menu-setting-row">
-                    <div class="sb-user-menu-setting-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="4"/>
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-                      </svg>
-                      <span>Appearance</span>
-                    </div>
-                    <div class="sb-theme-toggle" role="radiogroup" aria-label="Theme">
-                      <button type="button" data-theme-value="light" role="radio">Light</button>
-                      <button type="button" data-theme-value="dark"  role="radio">Dark</button>
-                    </div>
-                  </div>
-
-                  <div class="sb-user-menu-divider"></div>
-
-                  <button class="sb-user-menu-item" id="btn-settings-profile" type="button" role="menuitem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    Profile
-                  </button>
-
-                  <button class="sb-user-menu-item" id="btn-settings-notifications" type="button" role="menuitem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                    Notifications
-                  </button>
-
-                  <button class="sb-user-menu-item" id="btn-settings-about" type="button" role="menuitem">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="16" x2="12" y2="12"/>
-                      <line x1="12" y1="8" x2="12.01" y2="8"/>
-                    </svg>
-                    About
-                  </button>
-                </div>
-              </div>
-
+              <div class="sb-user-avatar" id="legacy-sb-user-avatar"></div>
+              <span class="sb-user-name" id="legacy-sb-user-name">User</span>
+              <button class="sb-user-menu-btn" id="sb-user-menu-btn" type="button" aria-hidden="true"></button>
+              <div class="sb-user-menu" id="legacy-sb-user-menu"></div>
             </div>
           </div>
 
-          <button class="btn sb-logout-btn" id="btn-logout-legacy" type="button" hidden>
+          <!-- ✨ NEW: Claude-style account dropdown ✨ -->
+          <div class="sb-account-wrapper">
+            <button
+              class="sb-account"
+              id="sb-account-trigger"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Open account menu"
+            >
+              <span class="sb-account-avatar" id="sb-user-avatar">U</span>
+              <span class="sb-account-info">
+                <span class="sb-account-name" id="sb-user-name">User</span>
+              </span>
+              <svg class="sb-account-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            <div class="sb-account-menu" id="sb-user-menu" role="menu" aria-labelledby="sb-account-trigger">
+
+              <div class="sb-account-menu-header">
+                <span class="sb-account-avatar sb-account-avatar--lg" id="sb-account-avatar-lg">U</span>
+                <span class="sb-account-info">
+                  <span class="sb-account-menu-name" id="sb-user-menu-name">User</span>
+                </span>
+              </div>
+
+              <div class="sb-account-menu-divider"></div>
+
+              <button class="sb-account-menu-item" id="btn-open-profile" type="button" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Profile</span>
+              </button>
+
+              <button class="sb-account-menu-item" id="btn-open-help" type="button" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>Help</span>
+              </button>
+
+              <button class="sb-account-menu-item" id="btn-open-about" type="button" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>About</span>
+              </button>
+
+              <button class="sb-account-menu-item sb-account-menu-item--danger" id="btn-logout-menu" type="button" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hidden legacy logout button (kept for back-compat) -->
+          <button class="sb-logout-btn" id="btn-logout-legacy" type="button" hidden>
             Logout
           </button>
         </div>
@@ -226,16 +789,6 @@
             <div class="topbar-titleblock">
               <h1 id="topbar-title">EnergyCert Bot</h1>
               <p>Green Energy Certificate assistant · powered by LLM, RAG &amp; Aptos blockchain</p>
-              <div class="topbar-meta">
-                <span class="topbar-status">
-                  <span class="topbar-status-dot" aria-hidden="true"></span>
-                  <span>Active session</span>
-                </span>
-                <span class="topbar-meta-sep" aria-hidden="true"></span>
-                <span class="topbar-meta-pill">LLM</span>
-                <span class="topbar-meta-pill">RAG</span>
-                <span class="topbar-meta-pill">Aptos</span>
-              </div>
             </div>
           </div>
 
@@ -274,18 +827,26 @@
           </div>
         </div>
 
+        <!-- ==================== Hero (Gemini-style) ==================== -->
         <section class="hero" id="hero-section">
           <div class="hero-inner">
-            <div class="hero-badge-row">
-              <span class="hero-badge">AI Assistant</span>
-              <span class="hero-badge hero-badge-soft">Marketplace + Registry</span>
-            </div>
 
             <div class="hero-title">Where should we begin?</div>
 
             <div class="hero-subtitle">
               Your domain assistant for the GEC registry — ask about issuance, transfer, retirement,
               marketplace trades, roles, and certificate activity in plain language.
+            </div>
+
+            <div class="hero-input">
+              <textarea rows="1" placeholder="Ask anything about GEC" id="hero-input" aria-label="Ask anything about GEC"></textarea>
+              <button class="send-btn" id="hero-send-btn" type="button" aria-label="Send">
+                <!-- Modern up-arrow (Claude/ChatGPT style), perfectly centered -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 19V5"/>
+                  <path d="M5 12l7-7 7 7"/>
+                </svg>
+              </button>
             </div>
 
             <div class="hero-quick-actions">
@@ -295,55 +856,6 @@
               <button class="hero-chip" id="hero-chip-market" type="button">Open marketplace</button>
             </div>
 
-            <div class="hero-input">
-              <textarea rows="1" placeholder="Ask anything about GEC" id="hero-input" aria-label="Ask anything about GEC"></textarea>
-              <button class="send-btn" id="hero-send-btn" type="button" aria-label="Send">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 12h14M13 5l7 7-7 7"/>
-                </svg>
-              </button>
-            </div>
-
-            <div class="hero-helper-grid">
-              <div class="hero-helper-card">
-                <div class="hero-helper-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
-                  </svg>
-                </div>
-                <div class="hero-helper-title">
-                  <strong>Registry actions</strong>
-                  Issue, transfer, retire, and review certificate activity.
-                </div>
-              </div>
-              <div class="hero-helper-card">
-                <div class="hero-helper-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 3v18h18"/>
-                    <path d="M7 15l4-4 4 4 5-5"/>
-                    <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
-                    <circle cx="11" cy="11" r="1.5" fill="currentColor"/>
-                    <circle cx="15" cy="15" r="1.5" fill="currentColor"/>
-                    <circle cx="20" cy="10" r="1.5" fill="currentColor"/>
-                  </svg>
-                </div>
-                <div class="hero-helper-title">
-                  <strong>Marketplace flows</strong>
-                  Browse buy/sell opportunities and inspect session-driven market data.
-                </div>
-              </div>
-              <div class="hero-helper-card">
-                <div class="hero-helper-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                  </svg>
-                </div>
-                <div class="hero-helper-title">
-                  <strong>Guided help</strong>
-                  Ask questions in plain language — no technical commands required.
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -546,6 +1058,133 @@
     </div>
   </div>
 
+  <!-- Help Modal -->
+  <div id="help-screen" class="info-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="info-card">
+      <div class="info-header">
+        <h2 id="help-title" class="info-title">Help & Support</h2>
+        <button class="info-close-btn" id="help-close-icon" aria-label="Close">&times;</button>
+      </div>
+      <div class="info-body">
+        <div class="info-section">
+          <h3>🔹 1. How to Use Chatbot</h3>
+          <p>You can interact with the system using natural language.</p>
+          <p><strong>Examples:</strong><br>• "What is a Green Energy Certificate?"<br>• "Create 50 solar certificates in Lahore"<br>• "List certificate 1 price 100"</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 2. How to Generate Certificate</h3>
+          <p><strong>Step 1:</strong> Type your request in chat<br>
+          <strong>Step 2:</strong> Example → "issue 10 solar certificates location Karachi"<br>
+          <strong>Step 3:</strong> Certificate will be generated and displayed</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 3. How to Use Marketplace</h3>
+          <p>• <strong>List:</strong> "list cert 1 price 100"<br>
+          • <strong>View:</strong> "show marketplace"<br>
+          • <strong>Buy:</strong> "buy cert 1"</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 4. Supported Commands <span style="font-size:0.8em;color:var(--text-soft);">(VERY IMPORTANT for demo)</span></h3>
+          <p>• issue [amount] [type] location [city]<br>
+          • list cert [id] price [amount]<br>
+          • buy cert [id]</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 5. Troubleshooting</h3>
+          <p>• Make sure backend servers are running<br>
+          • Check internet connection<br>
+          • Try simple commands if AI doesn't understand</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 6. Contact / Support</h3>
+          <p>For issues, contact:<br><strong>[Your Email]</strong></p>
+        </div>
+      </div>
+      <div class="info-footer">
+        <button id="help-close" class="info-btn info-btn-primary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-screen" class="info-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
+    <div class="info-card">
+      <div class="info-header">
+        <h2 id="about-title" class="info-title">About</h2>
+        <button class="info-close-btn" id="about-close-icon" aria-label="Close">&times;</button>
+      </div>
+      <div class="info-body">
+        <div class="info-section">
+          <h3>🔹 Project Name & Description</h3>
+          <p><strong>Green Energy Certificate (GEC) System</strong></p>
+          <p>A blockchain-based system that allows users to generate, manage, and trade green energy certificates using AI-powered interaction and decentralized technology.</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 Key Features</h3>
+          <p>• AI Chatbot for natural interaction<br>
+          • Certificate generation (Solar, Wind, Hydro)<br>
+          • Blockchain integration (Aptos)<br>
+          • Marketplace for listing certificates<br>
+          • RAG-based knowledge assistant</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 Tech Stack</h3>
+          <p><strong>Frontend:</strong> HTML, CSS, JavaScript<br>
+          <strong>Backend:</strong> Node.js / FastAPI<br>
+          <strong>AI:</strong> OpenAI + RAG<br>
+          <strong>Blockchain:</strong> Aptos<br>
+          <strong>Database:</strong> MongoDB</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 Team Info</h3>
+          <p><strong>Developed by:</strong> [Your Name / Team Name]<br>
+          <strong>Final Year Project (FYP)</strong><br>
+          <strong>University:</strong> [Your University Name]<br>
+          <strong>Supervisor:</strong> [Supervisor Name]</p>
+        </div>
+        <div class="info-section">
+          <h3>🔹 Version</h3>
+          <p><strong>Version:</strong> 1.0<br>
+          <strong>Release:</strong> 2026</p>
+        </div>
+      </div>
+      <div class="info-footer">
+        <button id="about-close" class="info-btn info-btn-primary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-screen" class="info-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+    <div class="info-card" style="max-width: 400px;">
+      <div class="info-header">
+        <h2 id="profile-title" class="info-title">Profile</h2>
+        <button class="info-close-btn" id="profile-close-icon" aria-label="Close">&times;</button>
+      </div>
+      <div class="info-body" style="padding: 1.5rem; text-align: left;">
+        <form id="profile-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="profile-fname" style="font-size: 0.88rem; font-weight: 500;">First Name</label>
+            <input type="text" id="profile-fname" placeholder="Enter first name" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-2); color: var(--text-main);" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="profile-lname" style="font-size: 0.88rem; font-weight: 500;">Last Name</label>
+            <input type="text" id="profile-lname" placeholder="Enter last name" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-2); color: var(--text-main);" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="profile-password" style="font-size: 0.88rem; font-weight: 500;">New Password</label>
+            <input type="password" id="profile-password" placeholder="Enter new password" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface-2); color: var(--text-main);" />
+          </div>
+          <div id="profile-feedback" style="color: var(--success); font-size: 0.88rem; font-weight: 500; display: none;">Profile updated successfully!</div>
+        </form>
+      </div>
+      <div class="info-footer">
+        <button id="profile-cancel" class="info-btn" type="button" style="background: var(--surface-2); color: var(--text-main); border: 1px solid var(--border-color);">Cancel</button>
+        <button id="profile-save" class="info-btn info-btn-primary" type="button">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <div id="logout-screen" class="logout-screen" role="dialog" aria-modal="true" aria-labelledby="logout-title">
     <div class="logout-card">
       <h2 id="logout-title" class="logout-title">Confirm Logout</h2>
@@ -559,6 +1198,9 @@
 
   <script>
     (function () {
+      // ==========================================================
+      // Theme toggle
+      // ==========================================================
       function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
         try { localStorage.setItem("ecb-theme", theme); } catch (e) {}
@@ -574,58 +1216,132 @@
         themeBtn.addEventListener("click", function () {
           var current = document.documentElement.getAttribute("data-theme") || "light";
           applyTheme(current === "dark" ? "light" : "dark");
-          syncThemePills();
         });
       }
 
-      var menuBtn = document.getElementById("sb-user-menu-btn");
+      // ==========================================================
+      // Account dropdown — Claude-style with Settings + Log out
+      // ==========================================================
+      var trigger = document.getElementById("sb-account-trigger");
       var menu    = document.getElementById("sb-user-menu");
 
-      function closeMenu() {
+      function closeAccountMenu() {
         if (!menu) return;
         menu.classList.remove("open");
-        menu.classList.remove("show-settings");
-        if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
       }
-      function toggleMenu(e) {
-        if (!menu || !menuBtn) return;
+      function toggleAccountMenu(e) {
+        if (!menu || !trigger) return;
         e.stopPropagation();
-        var isOpen = menu.classList.toggle("open");
-        menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        var willOpen = !menu.classList.contains("open");
+        menu.classList.toggle("open", willOpen);
+        trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
       }
-      if (menuBtn) menuBtn.addEventListener("click", toggleMenu);
 
+      if (trigger) trigger.addEventListener("click", toggleAccountMenu);
+
+      // Close on outside click
       document.addEventListener("click", function (e) {
         if (!menu || !menu.classList.contains("open")) return;
-        if (menu.contains(e.target) || (menuBtn && menuBtn.contains(e.target))) return;
-        closeMenu();
+        if (menu.contains(e.target) || (trigger && trigger.contains(e.target))) return;
+        closeAccountMenu();
       });
 
-      var logoutScreen  = document.getElementById("logout-screen");
-      var logoutCancel  = document.getElementById("logout-cancel");
-      var logoutConfirm = document.getElementById("logout-confirm");
-      var btnLogout     = document.getElementById("btn-logout");
+      // ==========================================================
+      // Initials + name population
+      // ==========================================================
+      function getInitials(name) {
+        if (!name) return "U";
+        var trimmed = String(name).trim();
+        if (!trimmed) return "U";
+        var parts = trimmed.split(/\s+/).filter(Boolean);
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+      }
+
+      function applyAccount(name, role) {
+        var initials = getInitials(name);
+        ["sb-user-avatar", "sb-account-avatar-lg"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = initials;
+        });
+        ["sb-user-name", "sb-user-menu-name"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && name) el.textContent = name;
+        });
+        var roleEl = document.getElementById("sb-user-menu-role");
+        if (roleEl) roleEl.textContent = role || "Signed in";
+      }
+
+      // Initialize from any user info stored locally
+      try {
+        var rawUser =
+          localStorage.getItem("ecb-user") ||
+          localStorage.getItem("energycert_user");
+        if (rawUser) {
+          var u = JSON.parse(rawUser);
+          var displayName =
+            u.name ||
+            ((u.firstName || "") + " " + (u.lastName || "")).trim() ||
+            u.email ||
+            "User";
+          applyAccount(displayName, u.role || "Signed in");
+        }
+      } catch (e) {}
+
+      // ==========================================================
+      // Logout modal
+      // ==========================================================
+      var logoutScreen    = document.getElementById("logout-screen");
+      var logoutCancel    = document.getElementById("logout-cancel");
+      var logoutConfirm   = document.getElementById("logout-confirm");
+      var btnLogout       = document.getElementById("btn-logout-menu");
+      var btnLogoutLegacy = document.getElementById("btn-logout-legacy");
+      var btnProfile      = document.getElementById("btn-open-profile");
+      
+      var profileScreen   = document.getElementById("profile-screen");
+      var profileCloseIcon= document.getElementById("profile-close-icon");
+      var profileCancel   = document.getElementById("profile-cancel");
+      var profileSave     = document.getElementById("profile-save");
+      
+      var helpScreen      = document.getElementById("help-screen");
+      var btnHelp         = document.getElementById("btn-open-help");
+      var helpClose       = document.getElementById("help-close");
+      var helpCloseIcon   = document.getElementById("help-close-icon");
+      
+      var aboutScreen     = document.getElementById("about-screen");
+      var btnAbout        = document.getElementById("btn-open-about");
+      var aboutClose      = document.getElementById("about-close");
+      var aboutCloseIcon  = document.getElementById("about-close-icon");
 
       function openLogoutModal() {
         if (!logoutScreen) return;
         logoutScreen.classList.add("is-open");
-        closeMenu();
+        closeAccountMenu();
       }
       function closeLogoutModal() {
         if (logoutScreen) logoutScreen.classList.remove("is-open");
       }
 
       function doLogout() {
-        try { localStorage.removeItem("ecb-user"); } catch (e) {}
+        try { 
+          localStorage.removeItem("ecb-user");
+          localStorage.removeItem("energycert_user");
+          localStorage.removeItem("user");
+          localStorage.removeItem("gecUser_plain");
+          localStorage.removeItem("token");
+          localStorage.removeItem("gecToken_plain");
+        } catch (e) {}
         try {
           if (typeof state !== "undefined" && state) {
             state.user = null;
+            state.token = null;
             if (typeof saveUser === "function") saveUser();
           }
         } catch (e) {}
         closeLogoutModal();
-        closeMenu();
-        window.location.href = "login.html";
+        closeAccountMenu();
+        window.location.replace("login.html");
       }
 
       if (btnLogout) {
@@ -635,6 +1351,111 @@
           openLogoutModal();
         });
       }
+      if (btnLogoutLegacy) {
+        btnLogoutLegacy.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          openLogoutModal();
+        });
+      }
+      // Profile Modal Handlers
+      if (btnProfile) {
+        btnProfile.addEventListener("click", function(e) {
+          e.stopPropagation();
+          closeAccountMenu();
+          if (profileScreen) profileScreen.classList.add("is-open");
+          
+          try {
+            var rawUser = localStorage.getItem("ecb-user") || localStorage.getItem("energycert_user");
+            if (rawUser) {
+              var u = JSON.parse(rawUser);
+              document.getElementById("profile-fname").value = u.firstName || u.name?.split(" ")[0] || "";
+              document.getElementById("profile-lname").value = u.lastName || u.name?.split(" ").slice(1).join(" ") || "";
+            }
+          } catch(err) {}
+        });
+      }
+      function closeProfileModal() {
+        if (profileScreen) {
+          profileScreen.classList.remove("is-open");
+          var fb = document.getElementById("profile-feedback");
+          if (fb) fb.style.display = "none";
+        }
+      }
+      if (profileCloseIcon) profileCloseIcon.addEventListener("click", closeProfileModal);
+      if (profileCancel) profileCancel.addEventListener("click", closeProfileModal);
+      if (profileScreen) {
+        profileScreen.addEventListener("click", function(e) {
+          if (e.target === profileScreen) closeProfileModal();
+        });
+      }
+      if (profileSave) {
+        profileSave.addEventListener("click", function() {
+          var fb = document.getElementById("profile-feedback");
+          if (fb) fb.style.display = "block";
+          
+          // Optionally update local storage name if they only changed name here
+          try {
+            var fn = document.getElementById("profile-fname").value.trim();
+            var ln = document.getElementById("profile-lname").value.trim();
+            var newName = (fn + " " + ln).trim();
+            if (newName) {
+              var rawUser = localStorage.getItem("ecb-user") || localStorage.getItem("energycert_user");
+              if (rawUser) {
+                var u = JSON.parse(rawUser);
+                u.name = newName;
+                u.firstName = fn;
+                u.lastName = ln;
+                localStorage.setItem("ecb-user", JSON.stringify(u));
+                if (window.EnergyCertUI && window.EnergyCertUI.setUser) {
+                  window.EnergyCertUI.setUser(newName, u.role || "Signed in");
+                }
+              }
+            }
+          } catch(err) {}
+
+          setTimeout(closeProfileModal, 1200);
+        });
+      }
+
+      // Help Modal Handlers
+      if (btnHelp) {
+        btnHelp.addEventListener("click", function(e) {
+          e.stopPropagation();
+          closeAccountMenu();
+          if (helpScreen) helpScreen.classList.add("is-open");
+        });
+      }
+      function closeHelpModal() {
+        if (helpScreen) helpScreen.classList.remove("is-open");
+      }
+      if (helpClose) helpClose.addEventListener("click", closeHelpModal);
+      if (helpCloseIcon) helpCloseIcon.addEventListener("click", closeHelpModal);
+      if (helpScreen) {
+        helpScreen.addEventListener("click", function(e) {
+          if (e.target === helpScreen) closeHelpModal();
+        });
+      }
+      
+      // About Modal Handlers
+      if (btnAbout) {
+        btnAbout.addEventListener("click", function(e) {
+          e.stopPropagation();
+          closeAccountMenu();
+          if (aboutScreen) aboutScreen.classList.add("is-open");
+        });
+      }
+      function closeAboutModal() {
+        if (aboutScreen) aboutScreen.classList.remove("is-open");
+      }
+      if (aboutClose) aboutClose.addEventListener("click", closeAboutModal);
+      if (aboutCloseIcon) aboutCloseIcon.addEventListener("click", closeAboutModal);
+      if (aboutScreen) {
+        aboutScreen.addEventListener("click", function(e) {
+          if (e.target === aboutScreen) closeAboutModal();
+        });
+      }
+
       if (logoutCancel)  logoutCancel.addEventListener("click", closeLogoutModal);
       if (logoutConfirm) logoutConfirm.addEventListener("click", doLogout);
       if (logoutScreen) {
@@ -643,71 +1464,27 @@
         });
       }
 
-      // Settings sub-panel navigation
-      var btnOpenSettings = document.getElementById("btn-open-settings");
-      var btnSettingsBack = document.getElementById("btn-settings-back");
-
-      if (btnOpenSettings) {
-        btnOpenSettings.addEventListener("click", function (e) {
-          e.stopPropagation();
-          if (menu) menu.classList.add("show-settings");
-        });
-      }
-      if (btnSettingsBack) {
-        btnSettingsBack.addEventListener("click", function (e) {
-          e.stopPropagation();
-          if (menu) menu.classList.remove("show-settings");
-        });
-      }
-
-      // Theme pill toggle
-      var themePillBtns = document.querySelectorAll(".sb-theme-toggle button[data-theme-value]");
-      function syncThemePills() {
-        var cur = document.documentElement.getAttribute("data-theme") || "light";
-        themePillBtns.forEach(function (b) {
-          b.classList.toggle("is-active", b.getAttribute("data-theme-value") === cur);
-        });
-      }
-      themePillBtns.forEach(function (b) {
-        b.addEventListener("click", function (e) {
-          e.stopPropagation();
-          applyTheme(b.getAttribute("data-theme-value"));
-          syncThemePills();
-        });
-      });
-      syncThemePills();
-
-      ["btn-settings-profile", "btn-settings-notifications", "btn-settings-about"].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) el.addEventListener("click", function (e) {
-          e.stopPropagation();
-          console.log(id + " clicked");
-        });
-      });
-
+      // Escape closes all modals
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
-          closeMenu();
+          closeAccountMenu();
           closeLogoutModal();
+          closeHelpModal();
+          closeAboutModal();
+          closeProfileModal();
         }
       });
 
+      // ==========================================================
+      // Public API for other scripts (app-login.js etc.)
+      // ==========================================================
       window.EnergyCertUI = window.EnergyCertUI || {};
       window.EnergyCertUI.setUser = function (name, role) {
-        var panel       = document.getElementById("sb-user-panel");
-        var nameEl      = document.getElementById("sb-user-name");
-        var menuNameEl  = document.getElementById("sb-user-menu-name");
-        var menuRoleEl  = document.getElementById("sb-user-menu-role");
-
-        if (nameEl && name)     nameEl.textContent = name;
-        if (menuNameEl && name) menuNameEl.textContent = name;
-        if (menuRoleEl)         menuRoleEl.textContent = role || "Signed in";
-        if (panel)              panel.classList.add("is-visible");
+        applyAccount(name, role);
       };
       window.EnergyCertUI.clearUser = function () {
-        var panel = document.getElementById("sb-user-panel");
-        if (panel) panel.classList.remove("is-visible");
-        closeMenu();
+        applyAccount("User", "Signed in");
+        closeAccountMenu();
       };
     })();
   </script>
