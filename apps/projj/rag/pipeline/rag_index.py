@@ -110,6 +110,19 @@ def _batched(items, batch_size: int):
         yield items[i:i + batch_size]
 
 
+def _ensure_faiss_installed() -> None:
+    try:
+        import faiss  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(
+            "[RAG] Missing FAISS dependency.\n"
+            "Install it in this virtual environment with:\n"
+            "  pip install faiss-cpu\n"
+            "If you install from the repo requirements instead, run:\n"
+            "  pip install -r requirements.txt"
+        ) from exc
+
+
 # ---------- Build / Load vector index ----------
 def build_index(force_rebuild: bool = False) -> Path:
     """
@@ -125,6 +138,7 @@ def build_index(force_rebuild: bool = False) -> Path:
             "Fix config.REPO_PATH (or set env var GEC_REPO_PATH) to your cloned repo folder."
         )
 
+    _ensure_faiss_installed()
     embeddings = get_embeddings()
 
     if index_dir.exists() and not force_rebuild:
@@ -197,6 +211,7 @@ def load_index() -> FAISS:
     if not index_dir.exists():
         raise FileNotFoundError(f"[RAG] Index not found at {index_dir}. Run build_index() first.")
 
+    _ensure_faiss_installed()
     embeddings = get_embeddings()
     print(f"[RAG] Loading FAISS index from: {index_dir}")
 

@@ -101,8 +101,22 @@ def index_dir_from_index_path(index_path: Path) -> Path:
     return index_path
 
 
+def ensure_faiss_installed() -> None:
+    try:
+        import faiss  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(
+            "[RAG] Missing FAISS dependency.\n"
+            "Install it in this virtual environment with:\n"
+            "  pip install faiss-cpu\n"
+            "If you install from the repo requirements instead, run:\n"
+            "  pip install -r requirements.txt"
+        ) from exc
+
+
 def build_or_load_vectorstore(force_rebuild: bool = False) -> FAISS:
     index_dir = index_dir_from_index_path(Path(INDEX_PATH))
+    ensure_faiss_installed()
     embeddings = get_embeddings()
 
     if index_dir.exists() and not force_rebuild:

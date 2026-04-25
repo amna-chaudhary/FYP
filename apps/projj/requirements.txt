@@ -5,6 +5,7 @@ langchain-text-splitters
 langchain-ollama
 langchain-openai
 chromadb
+faiss-cpu
 langchain_chroma
 python-dotenv
 streamlit
