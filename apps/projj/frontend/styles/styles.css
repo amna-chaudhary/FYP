@@ -2691,7 +2691,7 @@ html:not([data-theme="dark"]) #btn-theme-toggle-top .topbar-theme-moon {
 
 .dock {
   width: 100%;
-  padding: 0;
+  padding: 0 20px;
   margin: 0;
   border-top: 1px solid var(--border);
   background: var(--surface-glass);
@@ -2699,6 +2699,7 @@ html:not([data-theme="dark"]) #btn-theme-toggle-top .topbar-theme-moon {
   -webkit-backdrop-filter: blur(14px);
   display: flex;
   justify-content: center;
+  align-items: center;
   flex-shrink: 0;
 }
 
@@ -2709,7 +2710,7 @@ html:not([data-theme="dark"]) #btn-theme-toggle-top .topbar-theme-moon {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px 16px;
-  margin: 12px 20px 16px;
+  margin: 12px auto 16px;
   display: flex;
   align-items: center;
   gap: 12px;

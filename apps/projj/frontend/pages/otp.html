@@ -1,3 +1,6 @@
+<!-- Centered OTP Verification Interface -->
+<!-- Functionality remains intact: auth_otp.js will work normally -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,13 +9,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Verify your one-time code to complete EnergyCert Bot authentication." />
   <link rel="icon" type="image/png" href="../assets/logo1.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
+
   <script>
+    /* Theme detection — set early to avoid flash */
     (function () {
       try {
         var stored = localStorage.getItem("ecb-theme");
@@ -21,348 +27,558 @@
       } catch (e) {}
     })();
   </script>
+
   <style>
+    /* ============================================================
+       Design tokens — matching login.html project color scheme
+       ============================================================ */
     :root {
+      --teal-100: #d1f4ef;
+      --teal-200: #a6e8e0;
+      --teal-300: #6dd5ca;
+      --teal-400: #3db8ad;
       --teal-500: #00988b;
+      --teal-600: #007b72;
       --teal-700: #006059;
+      --teal-800: #0c2e2b;
+
+      --amber-300: #fcd34d;
+      --amber-400: #fbbf24;
+      --amber-500: #f59e0b;
+
       --ink-900: #0a1a17;
+      --ink-800: #122725;
       --ink-700: #1f3633;
+      --ink-500: #445164;
+      --ink-400: #6b7280;
       --ink-200: #e5edf0;
-      --auth-bg: #eaf6f4;
-      --auth-surface: rgba(255, 255, 255, 0.88);
-      --auth-border: rgba(12, 46, 43, 0.12);
-      --auth-muted: #5a706c;
-      --auth-success: #047857;
-      --auth-success-bg: #ecfdf5;
-      --auth-error: #b91c1c;
-      --auth-error-bg: #fef2f2;
+      --ink-100: #f1f5f5;
+
+      --auth-primary:       var(--teal-500);
+      --auth-primary-dark:  var(--teal-700);
+      --auth-primary-soft:  rgba(0, 152, 139, 0.08);
+      --auth-primary-ring:  rgba(0, 152, 139, 0.18);
+
+      --auth-text:          var(--ink-900);
+      --auth-text-muted:    #5a706c;
+      --auth-text-faint:    #8a9c98;
+      --auth-bg:            #eaf6f4;
+      --auth-surface:       #ffffff;
+      --auth-border:        rgba(12, 46, 43, 0.10);
+      --auth-border-strong: rgba(12, 46, 43, 0.18);
+
+      --auth-error:         #b91c1c;
+      --auth-error-bg:      #fef2f2;
+      --auth-success:       #047857;
+      --auth-success-bg:    #ecfdf5;
+
       --shadow-card: 0 30px 80px rgba(12, 46, 43, 0.18), 0 4px 16px rgba(12, 46, 43, 0.06);
-      --font-display: "Fraunces", Georgia, serif;
-      --font-body: "Inter", system-ui, sans-serif;
+      --shadow-glow: 0 18px 40px rgba(0, 152, 139, 0.25);
+
+      --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+      --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     [data-theme="dark"] {
-      --auth-bg: #050d0c;
-      --auth-surface: rgba(13, 24, 21, 0.86);
-      --auth-border: rgba(255, 255, 255, 0.10);
-      --ink-900: #e8f4f2;
-      --ink-700: #c2d7d2;
-      --ink-200: rgba(255, 255, 255, 0.08);
-      --auth-muted: #97aba6;
-      --auth-success: #6ee7b7;
-      --auth-success-bg: rgba(4, 120, 87, 0.18);
-      --auth-error: #fca5a5;
-      --auth-error-bg: rgba(220, 38, 38, 0.14);
+      --auth-primary:       #22d3bf;
+      --auth-primary-dark:  #4ce0cf;
+      --auth-primary-soft:  rgba(34, 211, 191, 0.10);
+      --auth-primary-ring:  rgba(34, 211, 191, 0.22);
+
+      --auth-text:          #e8f4f2;
+      --auth-text-muted:    #97aba6;
+      --auth-text-faint:    #627570;
+      --auth-bg:            #050d0c;
+      --auth-surface:       #0d1815;
+      --auth-border:        rgba(255, 255, 255, 0.08);
+      --auth-border-strong: rgba(255, 255, 255, 0.16);
+
+      --auth-error:         #fca5a5;
+      --auth-error-bg:      rgba(220, 38, 38, 0.12);
+      --auth-success:       #6ee7b7;
+      --auth-success-bg:    rgba(4, 120, 87, 0.18);
+
       --shadow-card: 0 30px 80px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body {
+    /* ============================================================
+       Reset & base
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
       font-family: var(--font-body);
-      color: var(--ink-900);
-      background:
-        radial-gradient(circle at top left, rgba(0, 152, 139, 0.22), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.18), transparent 28%),
-        linear-gradient(160deg, #edf8f6 0%, var(--auth-bg) 45%, #dcefeb 100%);
-      display: grid;
-      place-items: center;
+      color: var(--auth-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      height: 100%;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ============================================================
+       Page shell — centered verification layout
+       ============================================================ */
+    body {
+      background: var(--auth-bg);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient floating orbs matching the project theme */
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 22s ease-in-out infinite;
+    }
+    body::before {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(0, 152, 139, 0.25), transparent 70%);
+      top: -100px; left: -100px;
+    }
+    body::after {
+      width: 460px; height: 460px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+      bottom: -100px; right: -100px;
+      animation-delay: -11s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(40px, -50px) scale(1.06); }
+    }
+
+    .auth-shell {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 24px;
     }
 
-    [data-theme="dark"] body {
-      background:
-        radial-gradient(circle at top left, rgba(34, 211, 191, 0.16), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.10), transparent 28%),
-        linear-gradient(160deg, #03100d 0%, var(--auth-bg) 45%, #08201c 100%);
-    }
-
-    .otp-card {
-      width: min(100%, 760px);
-      background: var(--auth-surface);
-      border: 1px solid var(--auth-border);
-      border-radius: 28px;
-      box-shadow: var(--shadow-card);
-      backdrop-filter: blur(18px);
-      padding: 36px;
+    /* ----- Focused centered card ----- */
+    .otp-focused-card {
       position: relative;
-      overflow: hidden;
+      width: 100%;
+      max-width: 460px;
+      background: var(--auth-surface);
+      border-radius: 20px;
+      box-shadow: var(--shadow-card);
+      padding: 46px 40px 40px;
+      text-align: center;
+      animation: cardIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.985); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
     }
 
-    .otp-card::before {
-      content: "";
+    /* Theme toggle placed dynamically outside or top corner */
+    .auth-theme-toggle {
       position: absolute;
-      inset: auto -80px -120px auto;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0, 152, 139, 0.20), transparent 68%);
-      pointer-events: none;
+      top: 18px;
+      right: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--auth-border);
+      background: var(--auth-surface);
+      color: var(--auth-text-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.4s ease;
+      z-index: 5;
     }
-
-    .otp-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      align-items: flex-start;
-      margin-bottom: 24px;
+    .auth-theme-toggle:hover {
+      color: var(--auth-primary);
+      border-color: var(--auth-border-strong);
+      background: var(--auth-primary-soft);
+      transform: rotate(20deg);
     }
+    .auth-theme-toggle.is-spinning {
+      animation: spin360 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes spin360 {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .auth-theme-toggle .icon-sun { display: none; }
+    [data-theme="dark"] .auth-theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .auth-theme-toggle .icon-sun { display: block; }
 
-    .otp-badge {
+    /* ============================================================
+       Card Headers & Branding
+       ============================================================ */
+    .otp-logo {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(0, 152, 139, 0.10);
-      color: var(--teal-700);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+      justify-content: center;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-
-    .otp-dot {
-      width: 10px;
-      height: 10px;
+    
+    /* Clean, tech-style inner rotating dashed ring */
+    .otp-logo::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 76px;
+      height: 76px;
+      margin-top: -38px;
+      margin-left: -38px;
       border-radius: 50%;
-      background: var(--teal-500);
-      box-shadow: 0 0 0 6px rgba(0, 152, 139, 0.14);
+      border: 1.5px dashed var(--auth-primary);
+      opacity: 0.6;
+      z-index: 0;
+      animation: spinDash 12s linear infinite;
     }
 
-    .otp-theme-toggle {
-      border: 1px solid var(--auth-border);
-      background: transparent;
-      color: var(--ink-900);
-      border-radius: 999px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font: inherit;
+    /* Crisp, solid outer precision ring */
+    .otp-logo::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 90px;
+      height: 90px;
+      margin-top: -45px;
+      margin-left: -45px;
+      border-radius: 50%;
+      border: 1px solid var(--auth-primary);
+      opacity: 0.2;
+      z-index: 0;
+      animation: pulseRing 4s ease-in-out infinite;
+    }
+
+    .otp-logo img {
+      position: relative;
+      width: 56px;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));
+      z-index: 1;
+    }
+    [data-theme="dark"] .otp-logo img {
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+    }
+
+    @keyframes spinDash {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); opacity: 0.2; }
+      50%      { transform: scale(1.05); opacity: 0.4; }
     }
 
     h1 {
-      margin: 0 0 12px;
       font-family: var(--font-display);
-      font-size: clamp(2rem, 4vw, 3rem);
-      line-height: 1;
+      font-weight: 500;
+      font-size: 1.8rem;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: var(--auth-text);
+      margin-bottom: 12px;
+      animation: fadeUp 0.6s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    h1 .accent {
+      font-style: italic;
+      font-weight: 400;
+      background: linear-gradient(90deg, var(--teal-500) 0%, var(--amber-500) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
     }
 
-    .otp-copy {
-      color: var(--auth-muted);
-      font-size: 1.03rem;
-      line-height: 1.7;
-      max-width: 44rem;
-      margin-bottom: 10px;
+    .otp-desc {
+      color: var(--auth-text-muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .otp-desc strong {
+      color: var(--auth-text);
+      font-weight: 600;
     }
 
-    .otp-email {
-      font-weight: 800;
-      color: var(--ink-900);
-    }
-
+    /* ============================================================
+       OTP specific fields
+       ============================================================ */
     .auth-banner {
-      margin: 24px 0 18px;
-      padding: 14px 16px;
-      border-radius: 14px;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.86rem;
+      margin-bottom: 20px;
       border: 1px solid transparent;
-      font-size: 0.96rem;
+      text-align: left;
+      animation: fadeIn 0.3s ease;
     }
-
-    .auth-banner--error {
-      color: var(--auth-error);
-      background: var(--auth-error-bg);
-      border-color: rgba(185, 28, 28, 0.20);
-    }
-
-    .auth-banner--success {
-      color: var(--auth-success);
-      background: var(--auth-success-bg);
-      border-color: rgba(4, 120, 87, 0.20);
-    }
-
-    .otp-form {
-      margin-top: 12px;
-    }
+    .auth-banner--error   { color: var(--auth-error);   background: var(--auth-error-bg);   border-color: rgba(185, 28, 28, 0.25); }
+    .auth-banner--success { color: var(--auth-success); background: var(--auth-success-bg); border-color: rgba(4, 120, 87, 0.25); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
     .otp-grid {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 12px;
-      margin: 22px 0 14px;
+      gap: 10px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
 
     .otp-digit {
       width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: 18px;
-      border: 1px solid var(--auth-border);
-      background: rgba(255, 255, 255, 0.72);
+      aspect-ratio: 1 / 1.15;
+      border-radius: 10px;
+      border: 1.5px solid var(--auth-border);
+      background: var(--auth-surface);
       text-align: center;
-      font-size: clamp(1.4rem, 2vw, 1.9rem);
-      font-weight: 800;
-      color: var(--ink-900);
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-family: var(--font-body);
+      color: var(--auth-text);
       outline: none;
-      transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+      transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
     }
 
-    [data-theme="dark"] .otp-digit {
-      background: rgba(255, 255, 255, 0.03);
+    .otp-digit:hover:not(:focus) {
+      border-color: var(--auth-border-strong);
     }
 
     .otp-digit:focus {
+      outline: none;
+      border-color: var(--auth-primary);
+      box-shadow: 0 0 0 4px var(--auth-primary-ring);
       transform: translateY(-2px);
-      border-color: rgba(0, 152, 139, 0.65);
-      box-shadow: 0 0 0 5px rgba(0, 152, 139, 0.12);
     }
 
-    .otp-helper {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: var(--auth-muted);
-      font-size: 0.95rem;
-      margin-bottom: 26px;
-    }
-
-    .otp-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .otp-primary,
-    .otp-secondary,
-    .otp-link {
-      border-radius: 999px;
-      padding: 14px 20px;
-      font: inherit;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      transition: transform 140ms ease, opacity 140ms ease, background 140ms ease;
-    }
-
-    .otp-primary:hover,
-    .otp-secondary:hover,
-    .otp-link:hover {
-      transform: translateY(-1px);
-    }
-
-    .otp-primary {
-      border: none;
-      background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
-      color: #fff;
-      min-width: 200px;
+    /* Submit button — matches login.html perfectly */
+    .auth-submit {
       position: relative;
+      width: 100%;
+      height: 48px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--auth-text);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.94rem;
+      letter-spacing: -0.005em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.3s ease;
+      box-shadow: var(--shadow-glow);
+      animation: fadeUp 0.6s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-
-    .otp-primary.is-loading .otp-primary-label {
-      opacity: 0.35;
-    }
-
-    .otp-primary.is-loading::after {
+    .auth-submit::before {
       content: "";
       position: absolute;
-      inset: 50% auto auto 50%;
-      width: 18px;
-      height: 18px;
-      margin-left: -9px;
-      margin-top: -9px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.35);
+      inset: 0;
+      background: linear-gradient(135deg, var(--teal-600), var(--teal-500) 60%, var(--amber-500));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+    .auth-submit::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        110deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.18) 50%,
+        transparent 70%
+      );
+      animation: shine 4s ease-in-out infinite;
+      animation-delay: 1.5s;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes shine {
+      0%   { left: -100%; }
+      55%  { left: 100%; }
+      100% { left: 100%; }
+    }
+    .auth-submit:hover::after { animation-play-state: paused; opacity: 0; }
+    [data-theme="dark"] .auth-submit { background: var(--auth-primary); color: #061513; }
+    .auth-submit > * { position: relative; z-index: 1; }
+    .auth-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 44px rgba(0, 152, 139, 0.4);
+      color: #fff;
+    }
+    .auth-submit:hover::before { opacity: 1; }
+    .auth-submit:active { transform: translateY(0); }
+    .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .auth-submit:disabled::before { opacity: 0; }
+    .auth-submit .arrow {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.25s ease;
+      position: absolute;
+      right: 20px;
+    }
+    .auth-submit:hover:not(:disabled) .arrow { transform: translateX(3px); }
+    .auth-submit .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
+      border-radius: 50%;
+      display: none;
       animation: spin 0.8s linear infinite;
     }
+    .auth-submit.is-loading .spinner { display: block; }
+    .auth-submit.is-loading .arrow,
+    .auth-submit.is-loading .label-default { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .otp-secondary {
-      border: 1px solid var(--auth-border);
-      background: transparent;
-      color: var(--ink-900);
+    /* Helper actions below the button */
+    .otp-actions-foot {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: var(--auth-text-muted);
+      animation: fadeUp 0.6s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .otp-actions-foot button, 
+    .otp-actions-foot a {
+      color: var(--auth-primary-dark);
+      font-weight: 600;
+      transition: color 0.2s ease;
+      display: inline-block;
+    }
+    [data-theme="dark"] .otp-actions-foot button,
+    [data-theme="dark"] .otp-actions-foot a {
+      color: var(--auth-primary);
+    }
+    .otp-actions-foot button:hover, 
+    .otp-actions-foot a:hover {
+      color: var(--auth-primary);
+      text-decoration: underline;
+    }
+    [data-theme="dark"] .otp-actions-foot button:hover,
+    [data-theme="dark"] .otp-actions-foot a:hover {
+      color: var(--teal-200);
     }
 
-    .otp-link {
-      color: var(--auth-muted);
-      padding-left: 0;
-      padding-right: 0;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 700px) {
-      .otp-card { padding: 24px; }
-      .otp-top { flex-direction: column; }
+    @media (max-width: 520px) {
+      .otp-focused-card { padding: 40px 24px 32px; }
       .otp-grid { gap: 8px; }
-      .otp-digit {
-        min-height: 54px;
-        border-radius: 14px;
-      }
-      .otp-actions > * {
-        width: 100%;
-        text-align: center;
+      .otp-digit { font-size: 1.4rem; aspect-ratio: 1 / 1.25; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
 </head>
+
 <body>
-  <main class="otp-card">
-    <div class="otp-top">
-      <div>
-        <div class="otp-badge">
-          <span class="otp-dot"></span>
-          Email verification
+
+  <main class="auth-shell">
+    
+    <div class="otp-focused-card">
+      <button type="button" class="auth-theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+
+      <div class="otp-logo">
+        <img src="../assets/logo1.png" alt="EnergyCert Bot" onerror="this.style.display='none'" />
+      </div>
+
+      <h1>Verify your <span class="accent">email</span></h1>
+      <p class="otp-desc">
+        We sent a 6-digit code to <strong id="otp-email">your email</strong>.
+        <br/><span id="otp-purpose">Enter it below to continue.</span>
+      </p>
+
+      <div id="otp-banner" class="auth-banner" hidden role="alert" aria-live="polite"></div>
+
+      <form id="otp-form" class="otp-form" novalidate>
+        <input id="otp-code" type="hidden" />
+
+        <div class="otp-grid" aria-label="Verification code">
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 1" autofocus />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 2" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 3" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 4" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 5" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 6" />
         </div>
-      </div>
-      <button type="button" class="otp-theme-toggle" id="otp-theme-toggle" aria-label="Toggle theme">Toggle theme</button>
-    </div>
 
-    <h1>Enter your 6-digit code.</h1>
-    <p class="otp-copy">
-      We sent a one-time verification code to <span class="otp-email" id="otp-email">your email</span>.
-      <span id="otp-purpose">Enter the code to continue.</span>
-    </p>
-
-    <div id="otp-banner" class="auth-banner" hidden role="alert" aria-live="polite"></div>
-
-    <form id="otp-form" class="otp-form" novalidate>
-      <input id="otp-code" type="hidden" />
-      <div class="otp-grid" aria-label="Verification code">
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 1" />
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 2" />
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 3" />
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 4" />
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 5" />
-        <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 6" />
-      </div>
-
-      <div class="otp-helper">
-        <span>Paste the full code and we’ll split it automatically.</span>
-        <span>Codes expire after a few minutes.</span>
-      </div>
-
-      <div class="otp-actions">
-        <button type="submit" id="otp-submit" class="otp-primary">
-          <span class="otp-primary-label">Verify and continue</span>
+        <button type="submit" id="otp-submit" class="auth-submit">
+          <span class="spinner"></span>
+          <span class="label-default">Verify code</span>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
-        <button type="button" id="otp-resend" class="otp-secondary">Resend code</button>
-        <a id="otp-cancel" class="otp-link" href="register.html">Go back</a>
-      </div>
-    </form>
+
+        <div class="otp-actions-foot">
+          <div>
+            Didn't receive a code? <button type="button" id="otp-resend">Resend</button>
+          </div>
+          <div>
+            <a id="otp-cancel" href="register.html">Use a different email</a>
+          </div>
+        </div>
+      </form>
+
+    </div>
   </main>
 
   <script>
     (function () {
-      var btn = document.getElementById("otp-theme-toggle");
-      if (!btn) return;
-      btn.addEventListener("click", function () {
-        var cur = document.documentElement.getAttribute("data-theme") || "light";
-        var next = cur === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", next);
-        try { localStorage.setItem("ecb-theme", next); } catch (e) {}
-      });
+      /* Theme toggle */
+      var btn = document.getElementById("theme-toggle");
+      if (btn) {
+        btn.addEventListener("click", function () {
+          var cur = document.documentElement.getAttribute("data-theme") || "light";
+          var next = cur === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          try { localStorage.setItem("ecb-theme", next); } catch (e) {}
+          /* Trigger spin animation by re-adding the class */
+          btn.classList.remove("is-spinning");
+          void btn.offsetWidth;
+          btn.classList.add("is-spinning");
+        });
+        btn.addEventListener("animationend", function () {
+          btn.classList.remove("is-spinning");
+        });
+      }
     })();
   </script>
+
   <script src="../scripts/auth_otp.js"></script>
 </body>
 </html>

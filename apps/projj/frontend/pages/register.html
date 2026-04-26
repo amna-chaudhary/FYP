@@ -319,44 +319,59 @@
     }
     .auth-brand-logo-mark {
       position: relative;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.06);
-      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      display: grid;
-      place-items: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
       flex-shrink: 0;
-      isolation: isolate;
     }
     .auth-brand-logo-mark::before {
       content: "";
       position: absolute;
-      inset: -2px;
+      top: 50%;
+      left: 50%;
+      width: 44px;
+      height: 44px;
+      margin-top: -22px;
+      margin-left: -22px;
       border-radius: 50%;
-      background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        rgba(110, 231, 183, 0.6) 60deg,
-        rgba(252, 211, 77, 0.5) 120deg,
-        transparent 200deg,
-        transparent 360deg
-      );
-      animation: spinHalo 6s linear infinite;
-      z-index: -1;
+      border: 1px dashed rgba(110, 231, 183, 0.8);
+      opacity: 0.6;
+      z-index: 0;
+      animation: spinDash 12s linear infinite;
     }
     .auth-brand-logo-mark::after {
       content: "";
       position: absolute;
-      inset: 2px;
+      top: 50%;
+      left: 50%;
+      width: 54px;
+      height: 54px;
+      margin-top: -27px;
+      margin-left: -27px;
       border-radius: 50%;
-      background: rgba(10, 26, 23, 0.95);
-      z-index: -1;
+      border: 1px solid rgba(110, 231, 183, 0.4);
+      opacity: 0.2;
+      z-index: 0;
+      animation: pulseRing 4s ease-in-out infinite;
     }
-    @keyframes spinHalo { to { transform: rotate(360deg); } }
-    .auth-brand-logo-mark img { width: 76%; height: 76%; object-fit: contain; position: relative; }
+    @keyframes spinDash {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); opacity: 0.2; }
+      50%      { transform: scale(1.05); opacity: 0.4; }
+    }
+    .auth-brand-logo-mark img {
+      position: relative;
+      width: 34px;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+      z-index: 1;
+    }
     .auth-brand-logo-text {
       display: flex;
       flex-direction: column;
@@ -835,6 +850,150 @@
         transition-duration: 0.01ms !important;
       }
     }
+    /* ============================================================
+       Google Account Chooser Modal
+       ============================================================ */
+    .google-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .google-modal-overlay.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .google-modal-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--auth-surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .google-modal-overlay.is-active .google-modal-card {
+      transform: translateY(0) scale(1);
+    }
+    .google-modal-head {
+      padding: 32px 24px 16px;
+      text-align: center;
+    }
+    .google-modal-head svg {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 16px;
+    }
+    .google-modal-head h3 {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 1.4rem;
+      color: var(--auth-text);
+      margin-bottom: 8px;
+    }
+    .google-modal-head p {
+      font-size: 0.95rem;
+      color: var(--auth-text-muted);
+    }
+    .google-modal-head p strong {
+      font-weight: 600;
+      color: var(--auth-text);
+    }
+    .google-modal-list {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      border-top: 1px solid var(--auth-border);
+      border-bottom: 1px solid var(--auth-border);
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .google-account-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 24px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.2s ease;
+    }
+    .google-account-btn:hover {
+      background: var(--auth-primary-soft);
+    }
+    .google-account-btn:active {
+      background: rgba(0, 152, 139, 0.15);
+    }
+    .google-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .google-avatar-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--auth-text-faint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .google-account-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .g-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--auth-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .g-email {
+      font-size: 0.8rem;
+      color: var(--auth-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .google-modal-foot {
+      padding: 16px 24px;
+      text-align: right;
+    }
+    .google-modal-foot button {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--auth-primary);
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+    .google-modal-foot button:hover {
+      background: var(--auth-primary-soft);
+    }
   </style>
 </head>
 <body>
@@ -955,6 +1114,48 @@
       </section>
 
     </div>
+  <!-- Simulated Google Account Chooser Modal -->
+  <div class="google-modal-overlay" id="google-modal" hidden>
+    <div class="google-modal-card">
+      <div class="google-modal-head">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l2.85-2.22.83-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.18-4.53z" fill="#EA4335"/>
+        </svg>
+        <h3>Sign up with Google</h3>
+        <p>Choose an account to continue to<br/><strong>EnergyCert Bot</strong></p>
+      </div>
+      <div class="google-modal-list">
+        <button type="button" class="google-account-btn" data-email="amna.chaudhary@gmail.com">
+          <div class="google-avatar" style="background:#8e24aa;">A</div>
+          <div class="google-account-info">
+            <span class="g-name">Amna Chaudhary</span>
+            <span class="g-email">amna.chaudhary@gmail.com</span>
+          </div>
+        </button>
+        <button type="button" class="google-account-btn" data-email="user@gmail.com">
+          <div class="google-avatar" style="background:#1e88e5;">U</div>
+          <div class="google-account-info">
+            <span class="g-name">Test User</span>
+            <span class="g-email">user@gmail.com</span>
+          </div>
+        </button>
+        <button type="button" class="google-account-btn" data-email="new">
+          <div class="google-avatar-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="google-account-info">
+            <span class="g-name">Use another account</span>
+          </div>
+        </button>
+      </div>
+      <div class="google-modal-foot">
+        <button type="button" id="close-google-modal">Cancel</button>
+      </div>
+    </div>
+  </div>
   </main>
 
   <script>
@@ -1012,5 +1213,55 @@
     })();
   </script>
   <script src="../scripts/auth_register.js"></script>
+  <script>
+    (function() {
+      const googleBtn = document.getElementById("btn-google-signin");
+      const googleModal = document.getElementById("google-modal");
+      const closeBtn = document.getElementById("close-google-modal");
+      const accountBtns = document.querySelectorAll(".google-account-btn");
+
+      if (googleBtn && googleModal) {
+        googleBtn.addEventListener("click", () => {
+          googleModal.hidden = false;
+          // Trigger reflow to start transition
+          void googleModal.offsetWidth;
+          googleModal.classList.add("is-active");
+        });
+
+        const closeModal = () => {
+          googleModal.classList.remove("is-active");
+          setTimeout(() => {
+            googleModal.hidden = true;
+          }, 300); // Matches CSS transition duration
+        };
+
+        closeBtn.addEventListener("click", closeModal);
+        googleModal.addEventListener("click", (e) => {
+          if (e.target === googleModal) closeModal();
+        });
+
+        accountBtns.forEach(btn => {
+          btn.addEventListener("click", () => {
+            const email = btn.getAttribute("data-email");
+            if (email === 'new') {
+              alert("In a real app, this would open the native Google OAuth login window to add another account.");
+              return;
+            }
+            
+            // Simulate Google OAuth completing successfully,
+            // prepare the session context and route directly to OTP.
+            sessionStorage.setItem("ecb-otp-context", JSON.stringify({
+              email: email,
+              purpose: "register",
+              source: "register",
+              cancelRedirect: "register.html",
+              successRedirect: "index.html"
+            }));
+            window.location.href = "otp.html";
+          });
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

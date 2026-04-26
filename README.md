@@ -410,7 +410,7 @@ curl http://127.0.0.1:3000/
 ## 🔹 5. Start Frontend
 
 ```bash
-cd C:\FYP\apps\projj
+//cd C:\FYP\apps\projj
 
 ./apps/projj/frontend/pages/index.html
 ```
