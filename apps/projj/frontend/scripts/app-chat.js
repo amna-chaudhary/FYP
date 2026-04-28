@@ -661,6 +661,81 @@ function extractMcpBody(reply) {
   };
 }
 
+/* ============================================
+   Certificate modal (TODO-12.14)
+   ============================================ */
+function openCertificateModal(payload) {
+  if (typeof window.renderCertificate !== "function") {
+    window.open("certificate.html", "_blank", "noopener");
+    return;
+  }
+
+  // Remove any existing modal
+  document.querySelectorAll(".cert-modal-backdrop").forEach((n) => n.remove());
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "cert-modal-backdrop";
+  backdrop.style.cssText = [
+    "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);",
+    "display:flex;align-items:center;justify-content:center;padding:18px;"
+  ].join("");
+
+  const modal = document.createElement("div");
+  modal.className = "cert-modal";
+  modal.style.cssText = [
+    "width:min(980px,100%);max-height:92vh;overflow:auto;",
+    "background:rgba(18,18,18,0.92);border:1px solid rgba(255,255,255,0.12);",
+    "border-radius:14px;box-shadow:0 22px 80px rgba(0,0,0,0.55);padding:14px;"
+  ].join("");
+
+  const actions = document.createElement("div");
+  actions.style.cssText = "display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-bottom:10px;";
+  actions.innerHTML = `
+    <button type="button" class="cert-modal-btn" data-action="open">Open full page</button>
+    <button type="button" class="cert-modal-btn" data-action="print">Download PDF</button>
+    <button type="button" class="cert-modal-btn" data-action="close">Close</button>
+  `;
+
+  const container = document.createElement("div");
+  container.style.cssText = "padding:8px;display:flex;justify-content:center;";
+
+  modal.appendChild(actions);
+  modal.appendChild(container);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  const rendered = window.renderCertificate(container, payload);
+
+  function close() { backdrop.remove(); }
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+  document.addEventListener("keydown", function onKey(e) {
+    if (e.key === "Escape") { document.removeEventListener("keydown", onKey); close(); }
+  });
+
+  actions.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const act = btn.getAttribute("data-action");
+    if (act === "close") return close();
+    if (act === "print") return window.print();
+    if (act === "open") {
+      // Persist + open same viewer page
+      try {
+        if (payload && payload.tx_hash) {
+          localStorage.setItem("gec:cert:view::" + payload.tx_hash, JSON.stringify(payload));
+          window.open(`certificate.html?tx=${encodeURIComponent(payload.tx_hash)}`, "_blank", "noopener");
+        } else if (rendered && rendered.displayId) {
+          window.open(`certificate.html?id=${encodeURIComponent(rendered.displayId)}`, "_blank", "noopener");
+        } else {
+          window.open("certificate.html", "_blank", "noopener");
+        }
+      } catch (e2) {
+        window.open("certificate.html", "_blank", "noopener");
+      }
+    }
+  });
+}
+
 async function handleSend(text, isRegenerate) {
   const trimmed = (text || "").trim();
   if (!trimmed) return;
@@ -742,6 +817,17 @@ async function handleSend(text, isRegenerate) {
       }
 
       pushMessage(conv.id, "bot", prettyHtml, { html: true });
+
+      // If this was an issuance tx, also open an inline modal preview.
+      try {
+        const ok = body && body.success === true;
+        const lastPrompt = String(state.lastUserMessage || "").toLowerCase();
+        const issuanceLike = ok && body.tx_hash && (body.issued_quantity != null || /\b(issue|create|mint|generate)\b/.test(lastPrompt));
+        if (issuanceLike) {
+          const payload = (typeof _certBuildPayload === "function") ? _certBuildPayload(body, state.lastUserMessage) : null;
+          if (payload) openCertificateModal(payload);
+        }
+      } catch (e) {}
       return;
     }
 
@@ -756,7 +842,7 @@ async function handleSend(text, isRegenerate) {
     pushMessage(
       conv.id,
       "bot",
-      "I couldn't reach the backend (http://localhost:3000/api/chat). Please start backend and try again.",
+      `I couldn't reach the backend (${API_URL}). Please start backend and try again.`,
       { html: false }
     );
   } finally {

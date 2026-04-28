@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from config import INDEX_PATH
 from rag_index import load_index, build_index
-from rag_main import answer_question
+from rag_main import answer_question, retrieve_context, validate_action_request
 
 VS = None  # global FAISS vectorstore
 
@@ -48,6 +48,17 @@ class FrontendChatRequest(BaseModel):
     mode: Optional[str] = None
     audience: Optional[str] = None
     include_sources: Optional[bool] = None
+
+
+class RetrievalRequest(BaseModel):
+    question: str
+    top_k: Optional[int] = 6
+    threshold: Optional[float] = None
+
+
+class ValidationRequest(BaseModel):
+    action: str
+    payload: dict
 
 
 @app.get("/")
@@ -135,4 +146,65 @@ def chat(req: FrontendChatRequest):
                 "type": "answer",
                 "text": f"RAG error: {str(e)}",
             },
+        }
+
+
+@app.post("/retrieve")
+def retrieve(req: RetrievalRequest):
+    if VS is None:
+        return {
+            "success": False,
+            "available": False,
+            "error": "RAG index is not loaded.",
+            "evidence": [],
+            "context": "",
+        }
+
+    try:
+        threshold = req.threshold if req.threshold is not None else 0.30
+        result = retrieve_context(req.question, VS, top_k=req.top_k or 6, threshold=threshold)
+        return {
+            "success": True,
+            "available": True,
+            "question": result["question"],
+            "evidence": result["evidence"],
+            "context": result["context"],
+        }
+    except Exception as e:
+        print("[RAG-SERVICE ERROR in /retrieve]")
+        traceback.print_exc()
+        return {
+            "success": False,
+            "available": True,
+            "error": str(e),
+            "evidence": [],
+            "context": "",
+        }
+
+
+@app.post("/validate-action")
+def validate_action(req: ValidationRequest):
+    if VS is None:
+        return {
+            "success": False,
+            "available": False,
+            "allow": True,
+            "violations": [],
+            "warnings": ["RAG index is not loaded, so validation fell back to allow."],
+            "evidence": [],
+        }
+
+    try:
+        result = validate_action_request(req.action, req.payload or {}, VS)
+        return result
+    except Exception as e:
+        print("[RAG-SERVICE ERROR in /validate-action]")
+        traceback.print_exc()
+        return {
+            "success": False,
+            "available": True,
+            "allow": True,
+            "violations": [],
+            "warnings": [f"RAG validation failed internally: {e}"],
+            "evidence": [],
         }

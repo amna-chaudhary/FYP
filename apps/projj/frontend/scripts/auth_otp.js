@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000/api/auth";
+const API_BASE = window.ECB_API?.AUTH_BASE || "http://127.0.0.1:3000/api/auth";
 const USER_KEY = "ecb-user";
 const TOKEN_KEY = "ecb-token";
 const DEVICE_KEY = "ecb-device-token";

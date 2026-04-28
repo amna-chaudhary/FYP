@@ -1,0 +1,12 @@
+[package]
+name = "gec_blockchain"
+version = "0.0.1"
+
+[addresses]
+gec = "0xc8c1214ccc5ae055ee5bb1eeac57cec4e760dccbdf7ca52b5d2bbcc1c7ed7cdb"
+
+[dev-addresses]
+gec = "0xc8c1214ccc5ae055ee5bb1eeac57cec4e760dccbdf7ca52b5d2bbcc1c7ed7cdb"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "main" }

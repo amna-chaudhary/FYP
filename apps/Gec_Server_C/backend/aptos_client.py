@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import binascii
+import inspect
+import typing
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -21,6 +23,7 @@ class TxResult:
     success: bool
     vm_status: str | None = None
     explorer_url: str | None = None
+    raw_tx: Dict[str, Any] | None = None
 
 
 def _clean_hex(h: str) -> str:
@@ -39,11 +42,51 @@ def _normalize_address(addr: str) -> str:
     return addr.lower()
 
 
+def _type_hint_includes_str(t: Any) -> bool:
+    if t is str:
+        return True
+    args = getattr(t, "__args__", None)
+    if isinstance(args, tuple) and str in args:
+        return True
+    return False
+
+
+def _load_key_accepts_str_key() -> bool:
+    if not hasattr(Account, "load_key"):
+        return False
+    try:
+        hints = typing.get_type_hints(Account.load_key)
+        if _type_hint_includes_str(hints.get("key")):
+            return True
+    except (TypeError, KeyError, NameError):
+        pass
+    try:
+        load_key_sig = inspect.signature(Account.load_key)
+        key_param = load_key_sig.parameters.get("key")
+        if not key_param or key_param.annotation is inspect.Parameter.empty:
+            return False
+        ann = key_param.annotation
+        if ann is str or ann == "str":
+            return True
+        if isinstance(ann, str) and "str" in ann:
+            return True
+    except (TypeError, ValueError):
+        pass
+    return False
+
+
 def account_from_private_key_hex(priv_hex: str) -> Account:
     priv_hex = _clean_hex(priv_hex)
-    priv_bytes = binascii.unhexlify(priv_hex)
 
     if hasattr(Account, "load_key"):
+        if _load_key_accepts_str_key():
+            return Account.load_key(priv_hex)
+        try:
+            return Account.load_key(priv_hex)
+        except TypeError:
+            pass
+
+        priv_bytes = binascii.unhexlify(priv_hex)
         return Account.load_key(priv_bytes)
 
     raise ValueError("Unsupported aptos_sdk version: Account.load_key not found")
@@ -133,6 +176,7 @@ class AptosTxClient:
             success=success,
             vm_status=vm_status,
             explorer_url=explorer,
+            raw_tx=tx_info,
         )
 
     async def view(
@@ -196,3 +240,8 @@ async def view_function(
         arguments=args or [],
         type_arguments=type_arguments or [],
     )
+
+
+async def fetch_tx_by_hash(tx_hash: str) -> Dict[str, Any]:
+    client = get_aptos_client()
+    return await client._fetch_tx_by_hash(tx_hash)

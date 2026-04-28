@@ -294,6 +294,50 @@
         }
       }
     },
+    "/chain/certificates/{cert_identifier}": {
+      "get": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "cert_view",
+        "summary": "Fetch an on-chain certificate record via view function (full display fields)",
+        "parameters": [
+          {
+            "name": "cert_identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Certificate identifier: numeric id (e.g. 123) or display id (e.g. GEC-2026-000123)"
+          },
+          {
+            "name": "registry_addr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Registry resource address; defaults to backend config"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateViewRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/marketplace/init": {
       "post": {
         "tags": [
@@ -619,11 +663,112 @@
           "explorer_url": {
             "type": "string",
             "nullable": true
+          },
+          "sender_address": {
+            "type": "string",
+            "nullable": true
+          },
+          "account_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "owner_account_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "source_account_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "target_account_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "issued_quantity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "transferred_quantity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "retired_quantity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "energy_source": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "cert_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "listing_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "module_address": {
+            "type": "string",
+            "nullable": true
+          },
+          "display_id": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
           "tx_hash",
           "success"
+        ]
+      },
+      "CertificateViewRecord": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "display_id": { "type": "string" },
+          "owner": { "type": "string" },
+          "previous_owner": { "type": "string" },
+          "issuer": { "type": "string" },
+          "device_id": { "type": "string" },
+          "device_name": { "type": "string" },
+          "energy_source": { "type": "string" },
+          "energy_amount": { "type": "integer" },
+          "prod_start": { "type": "string" },
+          "prod_end": { "type": "string" },
+          "location": { "type": "string" },
+          "status": { "type": "string" },
+          "created_at": { "type": "string" },
+          "tx_hash": { "type": "string", "nullable": true },
+          "explorer_url": { "type": "string", "nullable": true },
+          "network": { "type": "string" },
+          "smart_contract_id": { "type": "string" }
+        },
+        "required": [
+          "id",
+          "display_id",
+          "owner",
+          "previous_owner",
+          "issuer",
+          "device_id",
+          "device_name",
+          "energy_source",
+          "energy_amount",
+          "prod_start",
+          "prod_end",
+          "location",
+          "status",
+          "created_at",
+          "network",
+          "smart_contract_id"
         ]
       },
       "InitRegistryRequest": {

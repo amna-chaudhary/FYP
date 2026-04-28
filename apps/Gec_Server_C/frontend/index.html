@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEC Agent Login</title>
+  <link rel="stylesheet" href="./static/style.css" />
+</head>
+<body data-page="login">
+  <main class="login-shell">
+    <section class="hero-card">
+      <p class="eyebrow">Green Energy Certificate Agent</p>
+      <h1>Sign in with your SSI wallet to access the registry, chatbot, and marketplace.</h1>
+      <p class="hero-copy">
+        This frontend follows the documented GEC structure and connects directly to the FastAPI backend.
+        Use your DID identity to start an authenticated session before issuing, transferring, or reviewing certificates.
+      </p>
+      <div class="hero-pills">
+        <span>SSI Wallet</span>
+        <span>JWT Session</span>
+        <span>Registry Sync</span>
+      </div>
+    </section>
+
+    <section class="panel login-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">TODO-8.1</p>
+          <h2>Wallet Login</h2>
+        </div>
+        <a class="ghost-link" href="./chat.html">Skip to dashboard</a>
+      </div>
+
+      <div id="global-alert" class="alert hidden"></div>
+
+      <form id="login-form" class="stack-form">
+        <label>
+          <span>DID</span>
+          <input id="did" name="did" type="text" placeholder="did:example:alice" required />
+        </label>
+        <label>
+          <span>Account address</span>
+          <input id="accountAddress" name="accountAddress" type="text" placeholder="0xabc123..." />
+        </label>
+        <label>
+          <span>Display name</span>
+          <input id="displayName" name="displayName" type="text" placeholder="Alice Khan" />
+        </label>
+        <label>
+          <span>Wallet label</span>
+          <input id="walletLabel" name="walletLabel" type="text" placeholder="GEC Browser Wallet" />
+        </label>
+
+        <div class="form-actions">
+          <button id="login-submit" class="primary-btn" type="submit">Create SSI Session</button>
+          <button id="preview-qr" class="secondary-btn" type="button">Preview Challenge QR</button>
+        </div>
+      </form>
+
+      <section class="qr-section">
+        <div>
+          <h3>Wallet challenge</h3>
+          <p class="muted">
+            Present this QR challenge to the wallet, approve the signing request, then continue into the app.
+          </p>
+          <ol class="instruction-list">
+            <li>Enter your DID and account address.</li>
+            <li>Generate the challenge preview or create the session.</li>
+            <li>Approve in your SSI wallet and continue to the dashboard.</li>
+          </ol>
+        </div>
+        <div class="qr-card">
+          <div id="qr-preview" class="qr-preview" aria-live="polite"></div>
+          <p id="qr-caption" class="qr-caption">No challenge generated yet.</p>
+        </div>
+      </section>
+
+      <div id="login-session-card" class="session-card hidden"></div>
+    </section>
+  </main>
+
+  <script defer src="./static/app.js"></script>
+</body>
+</html>

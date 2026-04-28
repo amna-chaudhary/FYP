@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEC Agent Chat</title>
+  <link rel="stylesheet" href="./static/style.css" />
+</head>
+<body data-page="chat">
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">GEC Agent</p>
+      <h1>Chat Dashboard</h1>
+    </div>
+    <nav class="main-nav">
+      <a class="nav-link is-active" href="./chat.html">Chat</a>
+      <a class="nav-link" href="./registry.html">Registry</a>
+      <a class="nav-link" href="./marketplace.html">Marketplace</a>
+      <a class="nav-link" href="./certificate.html">Certificate</a>
+    </nav>
+    <div class="header-actions">
+      <button id="notification-toggle" class="icon-btn" type="button" aria-expanded="false">Notifications</button>
+      <div id="notification-panel" class="notification-panel hidden"></div>
+      <button id="logout-btn" class="secondary-btn" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main class="dashboard-grid">
+    <aside class="panel sidebar-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Session</p>
+          <h2>Active wallet</h2>
+        </div>
+      </div>
+      <div id="session-summary" class="session-summary"></div>
+
+      <section class="panel inset-panel">
+        <div class="panel-header compact">
+          <h3>Quick actions</h3>
+        </div>
+        <div class="quick-actions">
+          <button class="chip-btn" data-draft="Show me my certificates.">My certificates</button>
+          <button class="chip-btn" data-draft="Generate my registry report.">Generate report</button>
+          <button class="chip-btn" data-draft="List my open marketplace opportunities.">Marketplace feed</button>
+          <button class="chip-btn" data-draft="Show my notifications.">Notifications</button>
+        </div>
+      </section>
+
+      <section class="panel inset-panel">
+        <div class="panel-header compact">
+          <h3>Report download</h3>
+        </div>
+        <form id="report-form" class="stack-form">
+          <label>
+            <span>Report type</span>
+            <select id="report-type">
+              <option value="summary">Summary</option>
+              <option value="transactions">Transactions</option>
+              <option value="notifications">Notifications</option>
+            </select>
+          </label>
+          <label>
+            <span>From</span>
+            <input id="report-from" type="date" />
+          </label>
+          <label>
+            <span>To</span>
+            <input id="report-to" type="date" />
+          </label>
+          <button class="primary-btn" type="submit">Download JSON Report</button>
+        </form>
+      </section>
+    </aside>
+
+    <section class="panel chat-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">TODO-8.2</p>
+          <h2>Assistant Conversation</h2>
+        </div>
+      </div>
+      <div id="chat-alert" class="alert hidden"></div>
+      <div id="chat-messages" class="chat-messages"></div>
+      <div id="typing-indicator" class="typing-indicator hidden">Agent is thinking…</div>
+      <form id="chat-form" class="chat-form">
+        <textarea id="chat-input" rows="3" placeholder="Ask the GEC agent to create, transfer, retire, search, or report." required></textarea>
+        <button class="primary-btn" type="submit">Send message</button>
+      </form>
+    </section>
+  </main>
+
+  <script defer src="./static/app.js"></script>
+</body>
+</html>

@@ -4,6 +4,95 @@
 // ✅ Keeps registry balances / tx history / rejected commands
 // ✅ Shows proof / audit info when available
 // ✅ Auto-refreshes marketplace when registry changes
+// ✅ Persists per-tx certificate payload for the certificate viewer page
+
+const CERT_VIEW_STORAGE_PREFIX = "gec:cert:view::";
+const CERT_VIEW_PAGE = "certificate.html";
+
+function _certHeuristicSource(text) {
+  const p = String(text || "").toLowerCase();
+  return ["solar", "wind", "hydro", "biomass", "geothermal", "thermal"]
+    .find((s) => p.includes(s)) || null;
+}
+
+function _certHeuristicQty(text) {
+  const m = String(text || "").match(/\b(\d+(?:\.\d+)?)\b/);
+  return m ? Number(m[1]) : null;
+}
+
+function _certIsIssuanceBody(body, prompt) {
+  if (!body || typeof body !== "object") return false;
+  if (body.issued_quantity != null) return true;
+  if (body.action === "issue_gecs") return true;
+  const p = String(prompt || "").toLowerCase();
+  if (/\b(issue|create|generate|mint)\b/.test(p) && /(certificate|cert\b|gec)/.test(p)) {
+    return true;
+  }
+  return false;
+}
+
+function _certBuildPayload(body, prompt) {
+  if (!body || typeof body !== "object" || !body.tx_hash) return null;
+  const sourceFromPrompt = _certHeuristicSource(prompt);
+  const qtyFromPrompt = _certHeuristicQty(prompt);
+  return {
+    tx_hash: body.tx_hash,
+    success: body.success === true,
+    vm_status: body.vm_status || (body.success === true ? "Executed successfully" : "Execution failed"),
+    explorer_url: body.explorer_url || "",
+    sender_address: body.sender_address || "",
+    account_id: body.account_id || body.owner_account_id || body.sender_address || "",
+    owner_account_id: body.owner_account_id || body.account_id || body.sender_address || "",
+    previous_owner: body.previous_owner || body.source_account_id || "",
+    energy_source: body.energy_source || sourceFromPrompt || "",
+    energy_amount:
+      body.issued_quantity != null
+        ? body.issued_quantity
+        : body.transferred_quantity != null
+          ? body.transferred_quantity
+          : body.retired_quantity != null
+            ? body.retired_quantity
+            : qtyFromPrompt,
+    location: body.location || "",
+    prod_start: body.prod_start || (body.time_window && body.time_window.from) || "",
+    prod_end: body.prod_end || (body.time_window && body.time_window.to) || "",
+    issuer: body.device_name || body.issuer || "",
+    device_id: body.device_id || "",
+    module_address: body.module_address || body.registry_addr || "",
+    network: body.network || "Aptos Testnet",
+    status: body.status || "ACTIVE",
+    cert_id: body.display_id || body.cert_id || "",
+    issued_at: body.created_at || new Date().toISOString(),
+    prompt: prompt || ""
+  };
+}
+
+function _certPersist(payload) {
+  if (!payload || !payload.tx_hash) return null;
+  try {
+    localStorage.setItem(
+      CERT_VIEW_STORAGE_PREFIX + payload.tx_hash,
+      JSON.stringify(payload)
+    );
+    return payload.tx_hash;
+  } catch (e) {
+    console.warn("cert payload persist failed", e);
+    return null;
+  }
+}
+
+function _certHasPersisted(txHash) {
+  if (!txHash) return false;
+  try {
+    return !!localStorage.getItem(CERT_VIEW_STORAGE_PREFIX + txHash);
+  } catch (e) {
+    return false;
+  }
+}
+
+function _certViewHref(txHash) {
+  return `${CERT_VIEW_PAGE}?tx=${encodeURIComponent(txHash || "")}`;
+}
 
 function ensureRegistryAccount(id) {
   const key = id || "unknown";
@@ -145,7 +234,12 @@ function updateRegistryFromMcp(body, prompt) {
     }
 
     const qtyMatch = lowerPrompt.match(/\b(\d+(?:\.\d+)?)\b/);
-    const qty = qtyMatch ? _parseQty(qtyMatch[1]) : 0;
+    const qty =
+      _parseQty(
+        body.issued_quantity ??
+        body.transferred_quantity ??
+        body.retired_quantity
+      ) || (qtyMatch ? _parseQty(qtyMatch[1]) : 0);
 
     const source =
       ["solar", "wind", "hydro", "biomass", "geothermal", "thermal"].find((x) =>
@@ -181,6 +275,9 @@ function updateRegistryFromMcp(body, prompt) {
         prompt,
         proof
       });
+
+      const certPayload = _certBuildPayload(body, prompt);
+      if (certPayload) _certPersist(certPayload);
 
       refreshRegistryLinkedViews();
       return;
@@ -429,6 +526,23 @@ function formatMcpBodyHtml(body) {
     const vmStatus = body.vm_status || (ok ? "Executed successfully" : "Execution failed");
     const explorerUrl = body.explorer_url || "";
 
+    const lastPrompt = (typeof state !== "undefined" && state && state.lastUserMessage) || "";
+    const isIssuance = ok && body.tx_hash && _certIsIssuanceBody(body, lastPrompt);
+    if (isIssuance) {
+      const payload = _certBuildPayload(body, lastPrompt);
+      if (payload) _certPersist(payload);
+    }
+
+    const viewCertBtn = isIssuance && body.tx_hash
+      ? `<a href="${_certViewHref(body.tx_hash)}" target="_blank" rel="noopener noreferrer"
+            class="mcp-cert-btn"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;
+                   background:linear-gradient(180deg,#1f8a52,#156a3b);color:#fff;font-weight:600;font-size:13px;
+                   text-decoration:none;box-shadow:0 4px 14px rgba(22,101,52,0.32);">
+            <span aria-hidden="true">🪪</span> View Certificate
+         </a>`
+      : "";
+
     return `
     <div class="mcp-card">
       <div class="mcp-header ${ok ? "success" : "error"}">
@@ -454,12 +568,15 @@ function formatMcpBodyHtml(body) {
           <div class="mcp-field-value">${vmStatus}</div>
         </div>
       </div>
-      <div class="mcp-footer">
-        ${
-          explorerUrl
-            ? `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Aptos Explorer ↗</a>`
-            : "No explorer link available."
-        }
+      <div class="mcp-footer" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+        <div>
+          ${
+            explorerUrl
+              ? `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Aptos Explorer ↗</a>`
+              : "No explorer link available."
+          }
+        </div>
+        ${viewCertBtn}
       </div>
     </div>`;
   }
@@ -769,12 +886,13 @@ function shortPrompt(text, max = 80) {
 
 function renderRegistry() {
   const summaryEl = document.getElementById("registry-summary");
-  const holdingsEl = document.getElementById("registry-holdings");
   const timelineEl = document.getElementById("registry-timeline");
   const rejectedEl = document.getElementById("registry-rejected");
   const accountFilterEl = document.getElementById("reg-account-filter");
+  const certListEl = document.getElementById("registry-cert-list");
+  const certPreviewEl = document.getElementById("registry-cert-preview");
 
-  if (!summaryEl || !holdingsEl || !timelineEl || !rejectedEl || !accountFilterEl) return;
+  if (!summaryEl || !timelineEl || !rejectedEl || !accountFilterEl || !certListEl || !certPreviewEl) return;
 
   const accounts = Object.values((state.registry && state.registry.accounts) || {});
   const txsSource = Array.isArray(state.registry?.txs) ? state.registry.txs : [];
@@ -819,34 +937,82 @@ function renderRegistry() {
     .join("");
 
   const filterAcc = accountFilterEl.value || "ALL";
-  const filteredAccounts = accounts.filter((a) =>
-    filterAcc === "ALL" ? true : a.accountId === filterAcc
-  );
+  // -----------------------------
+  // Certificates two-pane view
+  // -----------------------------
+  const issuedTxs = txsSource
+    .filter((t) => t.action === "issue" && (t.proof && t.proof.tx_hash))
+    .filter((t) => (filterAcc === "ALL" ? true : t.to === filterAcc));
 
-  if (filteredAccounts.length === 0) {
-    holdingsEl.innerHTML =
-      '<div class="reg-empty">No account balances yet. Issue, transfer or retire GECs to see holdings here.</div>';
+  const uniqueByTx = new Map();
+  for (const t of issuedTxs) {
+    if (!uniqueByTx.has(t.proof.tx_hash)) uniqueByTx.set(t.proof.tx_hash, t);
+  }
+  const certItems = Array.from(uniqueByTx.values()).reverse();
+
+  const selectedTx = state.registrySelectedTxHash || (certItems[certItems.length - 1]?.proof?.tx_hash || null);
+  state.registrySelectedTxHash = selectedTx;
+
+  if (!certItems.length) {
+    certListEl.innerHTML = '<div class="reg-empty">No certificates issued in this session yet.</div>';
+    certPreviewEl.innerHTML = '<div class="reg-empty">Issue a certificate in chat to preview it here.</div>';
   } else {
-    holdingsEl.innerHTML = filteredAccounts
-      .map((a) => {
-        const statusText = (a.balance || 0) > 0 ? "Active" : "Zero balance";
-        return `
-          <div class="reg-holding-card">
-            <div class="reg-holding-header">
-              <div class="reg-holding-title">Account ${a.accountId}</div>
-              <span class="reg-status-pill">${statusText}</span>
-            </div>
-            <div>Balance: <strong>${formatGecNumber(a.balance)} GECs</strong></div>
-            <div style="margin-top:4px;font-size:0.78rem;color:#6b7280;">
-              Issued: <strong>${formatGecNumber(a.issued)}</strong> ·
-              Received: <strong>${formatGecNumber(a.received)}</strong> ·
-              Sent: <strong>${formatGecNumber(a.sent)}</strong> ·
-              Retired: <strong>${formatGecNumber(a.retired)}</strong>
-            </div>
+    certListEl.innerHTML = certItems.map((t) => {
+      const txHash = t.proof.tx_hash;
+      const active = txHash === selectedTx ? "is-active" : "";
+      let displayId = "";
+      try {
+        const raw = localStorage.getItem(CERT_VIEW_STORAGE_PREFIX + txHash);
+        if (raw) {
+          const p = JSON.parse(raw);
+          displayId = p.cert_id && String(p.cert_id).startsWith("GEC-") ? String(p.cert_id) : "";
+        }
+      } catch (e) {}
+      const idText = displayId || ("TX " + String(txHash).slice(0, 10) + "…");
+      const src = t.energySource || "Renewable";
+      const qty = formatGecNumber(t.quantity || 0);
+      return `
+        <div class="reg-cert-item ${active}" data-tx="${txHash}">
+          <div class="reg-cert-item-top">
+            <div class="reg-cert-id">${idText}</div>
+            <span class="reg-cert-pill">ACTIVE</span>
           </div>
-        `;
-      })
-      .join("");
+          <div class="reg-cert-meta">
+            <span><strong>${qty}</strong> kWh</span>
+            <span>${src}</span>
+            <span>${shortPrompt(t.to, 22)}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Preview render
+    if (selectedTx) {
+      let payload = null;
+      try {
+        const raw = localStorage.getItem(CERT_VIEW_STORAGE_PREFIX + selectedTx);
+        payload = raw ? JSON.parse(raw) : null;
+      } catch (e) { payload = null; }
+
+      if (payload && typeof window.renderCertificate === "function") {
+        certPreviewEl.innerHTML = "";
+        window.renderCertificate(certPreviewEl, payload);
+      } else {
+        certPreviewEl.innerHTML = '<div class="reg-empty">Certificate payload not found. Issue a new certificate to generate a preview.</div>';
+      }
+    }
+
+    if (!certListEl.dataset.bound) {
+      certListEl.dataset.bound = "1";
+      certListEl.addEventListener("click", (e) => {
+        const item = e.target.closest("[data-tx]");
+        if (!item) return;
+        const tx = item.getAttribute("data-tx");
+        if (!tx) return;
+        state.registrySelectedTxHash = tx;
+        renderRegistry();
+      });
+    }
   }
 
   const txs = txsSource.filter((t) =>
@@ -893,13 +1059,38 @@ function renderRegistry() {
                <span>${t.from} → ${t.to}</span>`;
 
         const proof = t.proof || {};
+
+        if (t.action === "issue" && proof.tx_hash && !_certHasPersisted(proof.tx_hash)) {
+          const synth = {
+            tx_hash: proof.tx_hash,
+            success: true,
+            vm_status: "Executed successfully",
+            explorer_url: proof.explorer_url || "",
+            account_id: t.to || "",
+            owner_account_id: t.to || "",
+            energy_source: t.energySource || "",
+            energy_amount: t.quantity,
+            location: "",
+            issued_at: t.time ? new Date().toISOString() : new Date().toISOString(),
+            status: "ACTIVE",
+            prompt: t.prompt || ""
+          };
+          _certPersist(synth);
+        }
+
+        const viewCertLink =
+          t.action === "issue" && proof.tx_hash
+            ? `<a href="${_certViewHref(proof.tx_hash)}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">View certificate ↗</a>`
+            : "";
+
         const proofLine =
-          (proof.tx_hash || proof.metadata_hash || proof.onchain_id || proof.explorer_url)
+          (proof.tx_hash || proof.metadata_hash || proof.onchain_id || proof.explorer_url || viewCertLink)
             ? `<div class="reg-tx-proof" style="margin-top:4px;font-size:0.75rem;color:#6b7280;">
                  ${proof.tx_hash ? `<div><strong>tx_hash:</strong> ${proof.tx_hash}</div>` : ""}
                  ${proof.metadata_hash ? `<div><strong>metadata_hash:</strong> ${proof.metadata_hash}</div>` : ""}
                  ${proof.onchain_id ? `<div><strong>onchain_id:</strong> ${proof.onchain_id}</div>` : ""}
                  ${proof.explorer_url ? `<div><a href="${proof.explorer_url}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Explorer ↗</a></div>` : ""}
+                 ${viewCertLink ? `<div style="margin-top:2px;">${viewCertLink}</div>` : ""}
                </div>`
             : "";
 

@@ -15,6 +15,7 @@
   />
 
   <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="stylesheet" href="../styles/certificate.css" />
   <script>
     (function () {
       try {
@@ -204,6 +205,97 @@
       outline: none;
       border-color: var(--teal-300);
       box-shadow: 0 0 0 3px rgba(0, 152, 139, 0.18);
+    }
+
+    /* ============================================================
+       REGISTRY — Certificates two-pane layout
+       ============================================================ */
+    .reg-cert-grid {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .reg-cert-list {
+      display: grid;
+      gap: 10px;
+      max-height: 560px;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .reg-cert-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .reg-cert-item:hover {
+      border-color: rgba(0, 152, 139, 0.45);
+      box-shadow: 0 10px 18px -14px rgba(0, 152, 139, 0.35);
+      transform: translateY(-1px);
+    }
+    .reg-cert-item.is-active {
+      border-color: rgba(0, 152, 139, 0.75);
+      box-shadow: 0 14px 24px -18px rgba(0, 152, 139, 0.55);
+    }
+
+    .reg-cert-item-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .reg-cert-id {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+    .reg-cert-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reg-cert-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(0, 152, 139, 0.10);
+      color: rgba(0, 152, 139, 1);
+    }
+
+    .reg-cert-preview {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      overflow: auto;
+      max-height: 560px;
+    }
+    .reg-cert-preview .certificate-shell {
+      transform: scale(0.92);
+      transform-origin: top center;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 980px) {
+      .reg-cert-grid { grid-template-columns: 1fr; }
+      .reg-cert-preview { max-height: none; }
+      .reg-cert-list { max-height: 360px; }
+      .reg-cert-preview .certificate-shell { transform: none; }
     }
 
     /* Avatar circle with initials */
@@ -1039,18 +1131,23 @@
             <div class="reg-main-grid">
               <section class="reg-section reg-card">
                 <div class="reg-section-header">
-                  <h3>Activity log</h3>
-                  <p class="reg-section-sub">Ordered list of issues, transfers, retirements and balance checks.</p>
+                  <h3>Certificates</h3>
+                  <p class="reg-section-sub">Issued certificates in this session (select one to preview).</p>
                 </div>
-                <div id="registry-timeline" class="reg-timeline-list"></div>
+                <div class="reg-cert-grid">
+                  <div class="reg-cert-list" id="registry-cert-list"></div>
+                  <div class="reg-cert-preview" id="registry-cert-preview">
+                    <div class="reg-empty">Select a certificate to preview it here.</div>
+                  </div>
+                </div>
               </section>
 
               <section class="reg-section reg-card">
                 <div class="reg-section-header">
-                  <h3>Account balances</h3>
-                  <p class="reg-section-sub">Net GEC balance per account in this session.</p>
+                  <h3>Activity log</h3>
+                  <p class="reg-section-sub">Ordered list of issues, transfers, retirements and balance checks.</p>
                 </div>
-                <div id="registry-holdings" class="reg-holdings-grid"></div>
+                <div id="registry-timeline" class="reg-timeline-list"></div>
               </section>
             </div>
 
@@ -1521,8 +1618,10 @@
     })();
   </script>
 
+  <script src="../scripts/api-config.js"></script>
   <script src="../scripts/app-config.js"></script>
   <script src="../scripts/app-login.js"></script>
+  <script src="../scripts/certificate-view.js"></script>
   <script src="../scripts/app-chat.js"></script>
   <script src="../scripts/app-marketplace.js"></script>
   <script src="../scripts/app-registry.js"></script>

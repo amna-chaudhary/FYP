@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEC Certificate Detail</title>
+  <link rel="stylesheet" href="./static/style.css" />
+  <link rel="stylesheet" href="./static/certificate.css" />
+</head>
+<body data-page="certificate" class="certificate-page-shell">
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">GEC Agent</p>
+      <h1>Certificate Detail</h1>
+    </div>
+    <nav class="main-nav">
+      <a class="nav-link" href="./chat.html">Chat</a>
+      <a class="nav-link" href="./registry.html">Registry</a>
+      <a class="nav-link" href="./marketplace.html">Marketplace</a>
+      <a class="nav-link is-active" href="./certificate.html">Certificate</a>
+    </nav>
+    <div class="header-actions">
+      <button id="notification-toggle" class="icon-btn" type="button" aria-expanded="false">Notifications</button>
+      <div id="notification-panel" class="notification-panel hidden"></div>
+      <a class="ghost-link" href="./registry.html">Back to registry</a>
+      <button id="logout-btn" class="secondary-btn" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main class="certificate-main">
+    <div id="certificate-alert" class="alert hidden"></div>
+    <div id="certificate-page-detail" class="empty-state">
+      Open this page from the registry with a <code>?id=GEC-...</code> query string.
+    </div>
+  </main>
+
+  <script defer src="./static/certificate-view.js"></script>
+  <script defer src="./static/app.js"></script>
+</body>
+</html>

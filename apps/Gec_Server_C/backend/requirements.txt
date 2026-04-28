@@ -3,6 +3,7 @@ uvicorn[standard]
 requests
 httpx
 python-dotenv
+PyJWT>=2.8.0
 
 # LangChain ecosystem
 langchain>=0.2.0

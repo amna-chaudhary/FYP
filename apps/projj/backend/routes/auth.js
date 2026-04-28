@@ -1,19 +1,182 @@
 const express = require("express");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Otp = require("../models/Otp");
+const SsiChallenge = require("../models/SsiChallenge");
 const TrustedDevice = require("../models/TrustedDevice");
 const requireAuth = require("../middleware/requireAuth");
 const { sendOtpEmail } = require("../utils/mailer");
+const {
+  buildDidDocument,
+  createChallengeStatement,
+  decodeDidJwtToken,
+  normalizeDidMethod,
+  resolveDidDocument,
+  sanitizeUserForSession,
+  verifyDidSignature,
+} = require("../utils/ssi");
 
 const router = express.Router();
+let QRCode = null;
+
+try {
+  QRCode = require("qrcode");
+} catch (err) {
+  QRCode = null;
+}
 
 function signToken(user) {
   return jwt.sign(
-    { sub: user._id.toString(), email: user.email },
+    {
+      sub: user._id.toString(),
+      email: user.email || null,
+      did: user.did || null,
+      authMethods: user.authMethods || [],
+    },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
+}
+
+function splitDisplayName(displayName, fallbackDid) {
+  const normalized = String(displayName || "").trim();
+  if (!normalized) {
+    return { firstName: "SSI", lastName: fallbackDid || "User" };
+  }
+
+  const parts = normalized.split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || "SSI",
+    lastName: parts.slice(1).join(" ") || "User",
+  };
+}
+
+function buildOrigin(req) {
+  const explicitOrigin = req.get("origin");
+  if (explicitOrigin) return explicitOrigin;
+  return `${req.protocol}://${req.get("host")}`;
+}
+
+async function buildQrDataUrl(qrText) {
+  if (!QRCode) return null;
+  try {
+    return await QRCode.toDataURL(qrText, {
+      type: "image/png",
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 280,
+    });
+  } catch (err) {
+    console.warn("QR generation failed:", err.message);
+    return null;
+  }
+}
+
+async function upsertSsiUser({ did, didDocument, displayName, walletLabel }) {
+  const names = splitDisplayName(displayName, did);
+  const authMethods = ["ssi"];
+
+  const update = {
+    did,
+    didMethod: normalizeDidMethod(did),
+    didDocument,
+    verified: true,
+    walletLabel: walletLabel || "GEC SSI Wallet",
+    authMethods,
+    firstName: names.firstName,
+    lastName: names.lastName,
+  };
+
+  const existing = await User.findOne({ did });
+  if (existing) {
+    existing.didMethod = update.didMethod;
+    existing.didDocument = update.didDocument;
+    existing.verified = true;
+    existing.walletLabel = update.walletLabel;
+    existing.firstName = update.firstName;
+    existing.lastName = update.lastName;
+    existing.authMethods = Array.from(new Set([...(existing.authMethods || []), ...authMethods]));
+    await existing.save();
+    return existing;
+  }
+
+  return User.create({
+    ...update,
+    email: undefined,
+    password: undefined,
+  });
+}
+
+function validateDidRequest(did, didDocument) {
+  if (!did) {
+    throw new Error("DID is required.");
+  }
+  if (!didDocument || typeof didDocument !== "object") {
+    throw new Error("DID document is required.");
+  }
+  if (didDocument.id !== did) {
+    throw new Error("DID document id does not match the DID.");
+  }
+  if (!Array.isArray(didDocument.verificationMethod) || !didDocument.verificationMethod[0]?.publicKeyPem) {
+    throw new Error("DID document must include verificationMethod[0].publicKeyPem.");
+  }
+}
+
+async function issueSsiChallenge(req, payload) {
+  validateDidRequest(payload.did, payload.didDocument);
+
+  const user = await upsertSsiUser(payload);
+  const challengeId = crypto.randomUUID();
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const origin = buildOrigin(req);
+  const issuedAt = new Date().toISOString();
+  const statement = createChallengeStatement({
+    did: payload.did,
+    challengeId,
+    nonce,
+    origin,
+    issuedAt,
+  });
+  const expiresInSeconds = Number(process.env.SSI_CHALLENGE_EXPIRY_SECONDS || 300);
+  const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+  const approvalUrl = `${origin}/frontend/index.html?ssiChallenge=${encodeURIComponent(challengeId)}`;
+  const qrPayload = {
+    type: "gec-ssi-login",
+    did: payload.did,
+    challengeId,
+    statement,
+    verifyEndpoint: `${origin}/api/auth/ssi-login/verify`,
+    approvalUrl,
+    expiresAt: expiresAt.toISOString(),
+  };
+  const qrText = JSON.stringify(qrPayload);
+
+  await SsiChallenge.deleteMany({ did: payload.did, status: "pending" });
+  await SsiChallenge.create({
+    challengeId,
+    did: payload.did,
+    nonce,
+    statement,
+    qrText,
+    origin,
+    expiresAt,
+  });
+
+  return {
+    success: true,
+    challenge: {
+      challengeId,
+      did: payload.did,
+      statement,
+      qrText,
+      qrDataUrl: await buildQrDataUrl(qrText),
+      approvalUrl,
+      expiresAt: expiresAt.toISOString(),
+    },
+    user: sanitizeUserForSession(user),
+    didDocument: user.didDocument,
+  };
 }
 
 router.post("/register", async (req, res) => {
@@ -190,6 +353,157 @@ router.post("/resend-otp", async (req, res) => {
   } catch (err) {
     console.error("RESEND OTP ERROR:", err);
     return res.status(500).json({ success: false, error: "Failed to resend code" });
+  }
+});
+
+router.post("/ssi/wallet/register", async (req, res) => {
+  try {
+    const { did, didDocument, displayName, walletLabel } = req.body || {};
+    validateDidRequest(did, didDocument);
+
+    const user = await upsertSsiUser({ did, didDocument, displayName, walletLabel });
+    return res.json({
+      success: true,
+      user: sanitizeUserForSession(user),
+      didDocument: user.didDocument,
+    });
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err.message || "Failed to register SSI wallet." });
+  }
+});
+
+router.post("/ssi-login/challenge", async (req, res) => {
+  try {
+    const { did, didDocument, displayName, walletLabel } = req.body || {};
+    return res.json(await issueSsiChallenge(req, { did, didDocument, displayName, walletLabel }));
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err.message || "Failed to create SSI challenge." });
+  }
+});
+
+router.get("/ssi-login/challenge/:challengeId", async (req, res) => {
+  try {
+    const doc = await SsiChallenge.findOne({ challengeId: req.params.challengeId });
+    if (!doc) {
+      return res.status(404).json({ success: false, error: "Challenge not found." });
+    }
+
+    if (doc.status === "pending" && doc.expiresAt < new Date()) {
+      doc.status = "expired";
+      await doc.save();
+    }
+
+    return res.json({
+      success: true,
+      challenge: {
+        challengeId: doc.challengeId,
+        did: doc.did,
+        statement: doc.statement,
+        status: doc.status,
+        expiresAt: doc.expiresAt.toISOString(),
+        verifiedAt: doc.verifiedAt ? doc.verifiedAt.toISOString() : null,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: "Failed to load challenge." });
+  }
+});
+
+router.post("/ssi-login/verify", async (req, res) => {
+  try {
+    const { challengeId, did, signature } = req.body || {};
+    if (!challengeId || !did || !signature) {
+      return res.status(400).json({ success: false, error: "challengeId, did, and signature are required." });
+    }
+
+    const challenge = await SsiChallenge.findOne({ challengeId, did });
+    if (!challenge) {
+      return res.status(404).json({ success: false, error: "SSI challenge not found." });
+    }
+    if (challenge.status !== "pending") {
+      return res.status(400).json({ success: false, error: `Challenge is already ${challenge.status}.` });
+    }
+    if (challenge.expiresAt < new Date()) {
+      challenge.status = "expired";
+      await challenge.save();
+      return res.status(400).json({ success: false, error: "SSI challenge has expired." });
+    }
+
+    const user = await User.findOne({ did });
+    if (!user || !user.didDocument) {
+      return res.status(404).json({ success: false, error: "Unknown DID. Please register your wallet first." });
+    }
+
+    const resolvedDidDocument = await resolveDidDocument({
+      did,
+      didDocument: user.didDocument,
+    });
+
+    const valid = verifyDidSignature({
+      didDocument: resolvedDidDocument,
+      statement: challenge.statement,
+      signature,
+    });
+
+    if (!valid) {
+      return res.status(401).json({ success: false, error: "Invalid DID signature." });
+    }
+
+    const token = signToken(user);
+    challenge.status = "verified";
+    challenge.verifiedAt = new Date();
+    challenge.sessionToken = token;
+    await challenge.save();
+
+    return res.json({
+      success: true,
+      token,
+      user: sanitizeUserForSession(user),
+      didDocument: user.didDocument,
+      challenge: {
+        challengeId: challenge.challengeId,
+        status: challenge.status,
+        verifiedAt: challenge.verifiedAt.toISOString(),
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: "SSI verification failed." });
+  }
+});
+
+router.post("/ssi-login", async (req, res) => {
+  try {
+    const { credential, did, didDocument, displayName, walletLabel } = req.body || {};
+    let payload;
+
+    if (credential && typeof credential === "object") {
+      const decoded = credential.jwt ? decodeDidJwtToken(credential.jwt) : null;
+      const jwtPayload = decoded?.payload || {};
+      payload = {
+        didDocument:
+          credential.didDocument ||
+          jwtPayload.didDocument ||
+          (credential.publicKeyPem
+            ? buildDidDocument(credential.publicKeyPem, {
+                did: credential.did || jwtPayload.iss || jwtPayload.sub,
+                walletLabel: credential.walletLabel || jwtPayload.walletLabel || walletLabel,
+              })
+            : null),
+        did: credential.did || jwtPayload.iss || jwtPayload.sub,
+        displayName: credential.name || jwtPayload.name || displayName,
+        walletLabel: credential.walletLabel || jwtPayload.walletLabel || walletLabel,
+      };
+    } else {
+      payload = { did, didDocument, displayName, walletLabel };
+    }
+
+    if (!payload.did && payload.didDocument?.id) {
+      payload.did = payload.didDocument.id;
+    }
+
+    return res.json(await issueSsiChallenge(req, payload));
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err.message || "SSI login request is invalid." });
   }
 });
 

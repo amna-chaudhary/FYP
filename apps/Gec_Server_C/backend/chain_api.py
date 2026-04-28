@@ -10,11 +10,14 @@ from backend.aptos_client import (
     arg_bytes,
     arg_string,
     arg_u64,
+    fetch_tx_by_hash,
     submit_entry_function,
     view_function,
 )
 
-from backend.config import MODULE_ADDRESS, DEFAULT_MARKET_ADDR, DEFAULT_REGISTRY_ADDR
+from backend.config import MODULE_ADDRESS, DEFAULT_MARKET_ADDR, DEFAULT_REGISTRY_ADDR, APTOS_EXPLORER_NETWORK
+
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -29,12 +32,106 @@ class TxResponse(BaseModel):
     success: bool
     vm_status: Optional[str] = None
     explorer_url: Optional[str] = None
+    sender_address: Optional[str] = None
+    account_id: Optional[str] = None
+    owner_account_id: Optional[str] = None
+    source_account_id: Optional[str] = None
+    target_account_id: Optional[str] = None
+    issued_quantity: Optional[int] = None
+    transferred_quantity: Optional[int] = None
+    retired_quantity: Optional[int] = None
+    energy_source: Optional[str] = None
+    location: Optional[str] = None
+    cert_id: Optional[int] = None
+    listing_id: Optional[int] = None
+    created_at: Optional[str] = None
+    module_address: Optional[str] = None
+    display_id: Optional[str] = None
+
+
+class CertificateViewRecord(BaseModel):
+    id: int
+    display_id: str
+    owner: str
+    previous_owner: str
+    issuer: str
+    device_id: str
+    device_name: str
+    energy_source: str
+    energy_amount: int
+    prod_start: str
+    prod_end: str
+    location: str
+    status: str
+    created_at: str
+    tx_hash: Optional[str] = None
+    explorer_url: Optional[str] = None
+    network: str = "Aptos"
+    smart_contract_id: str = MODULE_ADDRESS
 
 
 def _unwrap_view_scalar(x, default=0):
     if isinstance(x, list) and len(x) > 0:
         return x[0]
     return default
+
+
+def _status_from_u8(v: int) -> str:
+    # Mirrors Move constants in GECertificate.move
+    if v == 1:
+        return "ACTIVE"
+    if v == 2:
+        return "RETIRED"
+    if v == 3:
+        return "CANCELLED"
+    return "UNKNOWN"
+
+
+def _format_display_id(created_at_iso: str, numeric_id: int) -> str:
+    try:
+        year = datetime.fromisoformat(created_at_iso.replace("Z", "+00:00")).year
+    except Exception:
+        year = datetime.now(timezone.utc).year
+    return f"GEC-{year}-{int(numeric_id):06d}"
+
+
+def _iso_from_unix_seconds(sec: int) -> str:
+    try:
+        return datetime.fromtimestamp(int(sec), tz=timezone.utc).isoformat()
+    except Exception:
+        return datetime.now(timezone.utc).isoformat()
+
+
+def _parse_cert_identifier(text: str) -> int:
+    s = str(text or "").strip()
+    if not s:
+        raise ValueError("Missing certificate identifier")
+    if s.isdigit():
+        return int(s)
+    # Accept display id like GEC-2026-000123
+    if s.upper().startswith("GEC-"):
+        parts = s.split("-")
+        if len(parts) >= 3 and parts[-1].isdigit():
+            return int(parts[-1])
+    # Accept GEC-123 (legacy registry id format)
+    if s.upper().startswith("GEC-") and s[4:].isdigit():
+        return int(s[4:])
+    raise ValueError(f"Unsupported certificate identifier: {s}")
+
+
+def _extract_issued_cert_id_from_tx(raw_tx: dict) -> Optional[int]:
+    if not isinstance(raw_tx, dict):
+        return None
+    events = raw_tx.get("events") or []
+    for ev in events:
+        try:
+            typ = str(ev.get("type") or "")
+            data = ev.get("data") or {}
+            if typ.endswith("gec_certificate::CertificateIssuedEvent") and "cert_id" in data:
+                return int(data["cert_id"])
+        except Exception:
+            continue
+    return None
 
 
 # =========================
@@ -159,7 +256,109 @@ async def cert_create(req: CreateCertificateRequest):
                 arg_string(req.location),
             ],
         )
-        return TxResponse(**r.__dict__)
+        cert_id: Optional[int] = None
+        created_at_iso: Optional[str] = None
+
+        try:
+            raw_tx = r.raw_tx or await fetch_tx_by_hash(r.tx_hash)
+            cert_id = _extract_issued_cert_id_from_tx(raw_tx)
+        except Exception:
+            cert_id = None
+
+        # If we successfully learned the cert id, fetch full details via view.
+        if cert_id is not None:
+            base = f"{MODULE_ADDRESS}::gec_certificate"
+            view_res = await view_function(
+                f"{base}::get_certificate",
+                [req.registry_addr, str(int(cert_id))],
+            )
+            # Aptos view returns a JSON array; first element is the tuple.
+            tuple0 = view_res[0] if isinstance(view_res, list) and view_res else view_res
+            if isinstance(tuple0, list) and len(tuple0) >= 12:
+                created_at_iso = _iso_from_unix_seconds(int(tuple0[11]))
+            elif isinstance(tuple0, dict) and "created_at" in tuple0:
+                created_at_iso = _iso_from_unix_seconds(int(tuple0["created_at"]))
+        if not created_at_iso:
+            created_at_iso = datetime.now(timezone.utc).isoformat()
+
+        display_id = _format_display_id(created_at_iso, cert_id or 0)
+
+        return TxResponse(
+            **r.__dict__,
+            sender_address=req.sender_address,
+            account_id=owner,
+            owner_account_id=owner,
+            issued_quantity=req.energy_amount,
+            energy_source=req.energy_source,
+            location=req.location,
+            cert_id=cert_id,
+            created_at=created_at_iso,
+            module_address=MODULE_ADDRESS,
+            display_id=display_id if cert_id is not None else None,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/chain/certificates/{cert_identifier}",
+    response_model=CertificateViewRecord,
+    operation_id="cert_view",
+)
+async def cert_view(cert_identifier: str, registry_addr: str = DEFAULT_REGISTRY_ADDR):
+    try:
+        cert_id = _parse_cert_identifier(cert_identifier)
+        base = f"{MODULE_ADDRESS}::gec_certificate"
+        view_res = await view_function(
+            f"{base}::get_certificate",
+            [registry_addr, str(int(cert_id))],
+        )
+        tuple0 = view_res[0] if isinstance(view_res, list) and view_res else view_res
+        if not isinstance(tuple0, list) or len(tuple0) < 13:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+
+        (
+            cid,
+            owner,
+            previous_owner,
+            device_id,
+            device_name,
+            energy_source,
+            energy_amount,
+            prod_start,
+            prod_end,
+            location,
+            status_u8,
+            created_at_sec,
+            issuer,
+        ) = tuple0[:13]
+
+        created_at_iso = _iso_from_unix_seconds(int(created_at_sec))
+        display_id = _format_display_id(created_at_iso, int(cid))
+        status = _status_from_u8(int(status_u8))
+
+        return CertificateViewRecord(
+            id=int(cid),
+            display_id=display_id,
+            owner=str(owner),
+            previous_owner=str(previous_owner),
+            issuer=str(issuer),
+            device_id=str(device_id),
+            device_name=str(device_name),
+            energy_source=str(energy_source),
+            energy_amount=int(energy_amount),
+            prod_start=str(prod_start),
+            prod_end=str(prod_end),
+            location=str(location),
+            status=status,
+            created_at=created_at_iso,
+            tx_hash=None,
+            explorer_url=None,
+            network=f"Aptos {APTOS_EXPLORER_NETWORK}",
+            smart_contract_id=MODULE_ADDRESS,
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -190,7 +389,14 @@ async def cert_transfer(req: TransferCertificateRequest):
                 arg_bytes(req.note.encode("utf-8")),
             ],
         )
-        return TxResponse(**r.__dict__)
+        return TxResponse(
+            **r.__dict__,
+            sender_address=req.sender_address,
+            source_account_id=req.sender_address,
+            target_account_id=req.recipient,
+            transferred_quantity=qty,
+            cert_id=req.cert_id,
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -208,7 +414,13 @@ async def cert_claim(req: ClaimCertificateRequest):
                 arg_u64(req.cert_id),
             ],
         )
-        return TxResponse(**r.__dict__)
+        return TxResponse(
+            **r.__dict__,
+            sender_address=req.sender_address,
+            account_id=req.sender_address,
+            owner_account_id=req.sender_address,
+            cert_id=req.cert_id,
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -227,7 +439,13 @@ async def cert_cancel(req: CancelCertificateRequest):
                 arg_string(req.beneficiary),
             ],
         )
-        return TxResponse(**r.__dict__)
+        return TxResponse(
+            **r.__dict__,
+            sender_address=req.sender_address,
+            account_id=req.sender_address,
+            owner_account_id=req.sender_address,
+            cert_id=req.cert_id,
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -285,6 +503,14 @@ async def market_init(req: InitMarketplaceRequest):
 @router.post("/marketplace/list", response_model=TxResponse, operation_id="market_list")
 async def market_list(req: ListCertificateRequest):
     try:
+        base = f"{MODULE_ADDRESS}::gec_marketplace"
+        count_before = 0
+        try:
+            listing_count = await view_function(f"{base}::get_listing_count", [req.market_addr])
+            count_before = int(_unwrap_view_scalar(listing_count, 0))
+        except Exception:
+            count_before = 0
+
         r = await submit_entry_function(
             sender_private_key_hex=req.sender_private_key_hex,
             module_address=MODULE_ADDRESS,
@@ -296,7 +522,10 @@ async def market_list(req: ListCertificateRequest):
                 arg_u64(req.price),
             ],
         )
-        return TxResponse(**r.__dict__)
+        new_listing_id: Optional[int] = None
+        if r.success:
+            new_listing_id = count_before + 1
+        return TxResponse(**r.__dict__, cert_id=req.cert_id, listing_id=new_listing_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

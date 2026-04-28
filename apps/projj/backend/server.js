@@ -4,7 +4,7 @@ const cors = require("cors");
 const axios = require("axios");
 const path = require("path");
 const connectDB = require("./config/db");
-
+const requireAuth = require("./middleware/requireAuth");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -17,7 +17,11 @@ const DEFAULT_MARKET_ADDR =
   process.env.DEFAULT_MARKET_ADDR ||
   "0xc8c1214ccc5ae055ee5bb1eeac57cec4e760dccbdf7ca52b5d2bbcc1c7ed7cdb";
 
-app.use(cors());
+let dbReady = false;
+
+app.use(cors(
+  { origin: '*', credentials: true }
+));
 app.use(express.json({ limit: "1mb" }));
 
 app.use((err, req, res, next) => {
@@ -48,42 +52,67 @@ app.get("/", (req, res) => {
 // -------------------------
 // Auth routes (MongoDB-backed)
 // -------------------------
+app.use("/api/auth", (req, res, next) => {
+  if (dbReady) return next();
+  return res.status(503).json({
+    success: false,
+    error: "Authentication service is temporarily unavailable.",
+  });
+});
 app.use("/api/auth", require("./routes/auth"));
 // -------------------------
 // Chat routing
 // -------------------------
 function isProcedureQuestion(text) {
   const t = String(text || "").toLowerCase().trim();
+  const hasExplicitAction = isExplicitActionCommand(t);
+
+  const asksForSchemaOrFormat =
+    /\b(openapi|swagger|json schema|request body|sample json|required fields|required properties)\b/.test(
+      t
+    ) ||
+    /\bwhat\b.*\b(fields|properties|parameters|json)\b/.test(t) ||
+    /\bhow\b.*\b(format|structure|request)\b/.test(t);
 
   return (
-    /\bhow\b/.test(t) ||
-    /\bwhat\b/.test(t) ||
-    /\bwhy\b/.test(t) ||
-    /\bprocedure\b/.test(t) ||
-    /\bprocess\b/.test(t) ||
-    /\bsteps\b/.test(t) ||
-    /\bguide\b/.test(t) ||
-    /\bworkflow\b/.test(t) ||
-    /\bexplain\b/.test(t) ||
-    /\bhelp\b/.test(t) ||
-    /\bcan you\b/.test(t) ||
-    /\bcould you\b/.test(t) ||
-    /\bhow can i\b/.test(t) ||
-    /\bwhat is\b/.test(t) ||
-    /\bwhat are\b/.test(t) ||
-    /\bhow do i\b/.test(t) ||
-    /\bhow to\b/.test(t)
+    !hasExplicitAction &&
+    (asksForSchemaOrFormat ||
+      /\bhow\b/.test(t) ||
+      /\bwhat\b/.test(t) ||
+      /\bwhy\b/.test(t) ||
+      /\bprocedure\b/.test(t) ||
+      /\bprocess\b/.test(t) ||
+      /\bsteps\b/.test(t) ||
+      /\bguide\b/.test(t) ||
+      /\bworkflow\b/.test(t) ||
+      /\bexplain\b/.test(t) ||
+      /\bhelp\b/.test(t) ||
+      /\bcan you\b/.test(t) ||
+      /\bcould you\b/.test(t) ||
+      /\bhow can i\b/.test(t) ||
+      /\bwhat is\b/.test(t) ||
+      /\bwhat are\b/.test(t) ||
+      /\bhow do i\b/.test(t) ||
+      /\bhow to\b/.test(t))
   );
 }
 
 function isExplicitActionCommand(text) {
   const t = String(text || "").toLowerCase().trim();
 
+  const startsWithQuestion =
+    /^(how|what|why|when|where|who|which)\b/i.test(String(text || "").trim());
+
   const hasActionVerb =
     /\b(issue|mint|transfer|claim|retire|cancel|void|buy|accept|audit|init|list)\b/.test(t);
 
+  // "create a green energy certificate" / "create certificate" (words may appear between)
   const hasCreateCertPhrase =
-    /\bcreate\s+(certificate|gec)\b/.test(t);
+    /\bcreate\b[\s\S]{0,200}?\b(certificate|certificates|gec)\b/i.test(t);
+
+  const hasGenerateCertPhrase =
+    /\b(generate|produce)\b[\s\S]{0,200}?\b(certificate|certificates|gec)\b/i.test(t) ||
+    /\b(generate|produce)\b[\s\S]{0,120}?\bgec\b/i.test(t);
 
   const hasListPhrase =
     /\blist\s+(certificate|certificates|listing|listings)\b/.test(t);
@@ -98,19 +127,26 @@ function isExplicitActionCommand(text) {
     /\b0x[a-f0-9]{10,}\b/i.test(t);
 
   const hasQuantity =
-    /\b\d+(\.\d+)?\s*(gec|gecs|mwh)?\b/i.test(t);
+    /\b\d+(\.\d+)?\s*(kwh|mwh|wh|gec|gecs)?\b/i.test(t);
 
   const hasConcreteTransfer =
     /\btransfer\b/.test(t) && (hasCertId || hasBundleId || hasAddress);
 
   const hasConcreteIssue =
-    /\b(issue|mint)\b/.test(t) && hasQuantity;
+    /\b(issue|mint|generate|produce)\b/.test(t) && hasQuantity;
+
+  const hasIssueOrMintWithEnergySource =
+    !startsWithQuestion &&
+    /\b(issue|mint|generate|produce)\b/.test(t) &&
+    /\b(solar|wind|hydro|geothermal|biomass|nuclear|thermal|renewable)\b/.test(t);
 
   return (
     hasConcreteIssue ||
     hasConcreteTransfer ||
     hasCreateCertPhrase ||
+    hasGenerateCertPhrase ||
     hasListPhrase ||
+    hasIssueOrMintWithEnergySource ||
     (hasActionVerb && (hasCertId || hasBundleId || hasAddress || hasQuantity))
   );
 }
@@ -157,12 +193,15 @@ async function callRag(message, userId) {
   };
 }
 
-async function callActionBackend(message, userId) {
+async function callActionBackend(message, userId, authorization) {
   const url = `${ACTION_BASE}/chat`;
   const response = await axios.post(
     url,
     { message, userId },
-    { timeout: 30000 }
+    {
+      timeout: 30000,
+      headers: authorization ? { Authorization: authorization } : {},
+    }
   );
 
   if (response.data?.success && response.data?.reply) {
@@ -178,9 +217,10 @@ async function callActionBackend(message, userId) {
   };
 }
 
-app.post("/api/chat", async (req, res) => {
-  const { message, userId } = req.body || {};
-  const uid = userId || "anonymous";
+app.post("/api/chat", requireAuth, async (req, res) => {
+  const { message } = req.body || {};
+  const uid = req.userEmail || req.userId;
+  const authorization = req.headers.authorization || "";
 
   if (!message || typeof message !== "string") {
     return res.status(400).json({
@@ -197,7 +237,7 @@ app.post("/api/chat", async (req, res) => {
   try {
     if (isActionIntent(raw)) {
       console.log("➡️ Routed to ACTION backend:", raw);
-      const result = await callActionBackend(raw, uid);
+      const result = await callActionBackend(raw, uid, authorization);
       return res.json(result);
     }
 
@@ -226,14 +266,46 @@ async function forwardActionGet(pathname) {
   return response.data;
 }
 
+async function forwardActionGetAuthed(pathname, authorization) {
+  const url = `${ACTION_BASE}${pathname}`;
+  const response = await axios.get(url, {
+    timeout: 30000,
+    headers: authorization ? { Authorization: authorization } : {},
+  });
+  return response.data;
+}
+
 async function forwardActionPost(pathname, body) {
   const url = `${ACTION_BASE}${pathname}`;
   const response = await axios.post(url, body, { timeout: 30000 });
   return response.data;
 }
 
+// -------------------------
+// Certificates proxy routes
+// -------------------------
+app.get("/api/certificates/:id", requireAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const authorization = req.headers.authorization || "";
+    const data = await forwardActionGetAuthed(`/certificates/${encodeURIComponent(id)}`, authorization);
+    return res.json(data);
+  } catch (err) {
+    console.error("CERTIFICATE DETAIL ERROR:", err?.response?.data || err?.message || err);
+    const status = err?.response?.status || 500;
+    return res.status(status).json({
+      success: false,
+      error:
+        err?.response?.data?.error ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Failed to fetch certificate",
+    });
+  }
+});
+
 // real stats from action backend
-app.get("/api/market/stats", async (req, res) => {
+app.get("/api/market/stats", requireAuth, async (req, res) => {
   try {
     const marketAddr = req.query.market_addr || DEFAULT_MARKET_ADDR;
     const data = await forwardActionGet(`/marketplace/${marketAddr}/stats`);
@@ -251,7 +323,7 @@ app.get("/api/market/stats", async (req, res) => {
 });
 
 // create listing
-app.post("/api/market/list", async (req, res) => {
+app.post("/api/market/list", requireAuth, async (req, res) => {
   try {
     const body = req.body || {};
     const data = await forwardActionPost("/marketplace/list", body);
@@ -269,7 +341,7 @@ app.post("/api/market/list", async (req, res) => {
 });
 
 // request buy
-app.post("/api/market/request-buy", async (req, res) => {
+app.post("/api/market/request-buy", requireAuth, async (req, res) => {
   try {
     const body = req.body || {};
     const data = await forwardActionPost("/marketplace/request-buy", body);
@@ -287,7 +359,7 @@ app.post("/api/market/request-buy", async (req, res) => {
 });
 
 // accept buy
-app.post("/api/market/accept-buy", async (req, res) => {
+app.post("/api/market/accept-buy", requireAuth, async (req, res) => {
   try {
     const body = req.body || {};
     const data = await forwardActionPost("/marketplace/accept-buy", body);
@@ -305,7 +377,7 @@ app.post("/api/market/accept-buy", async (req, res) => {
 });
 
 // cancel listing
-app.post("/api/market/cancel", async (req, res) => {
+app.post("/api/market/cancel", requireAuth, async (req, res) => {
   try {
     const body = req.body || {};
     const data = await forwardActionPost("/marketplace/cancel", body);
@@ -324,7 +396,7 @@ app.post("/api/market/cancel", async (req, res) => {
 
 // temporary session-derived listings endpoint
 // This gives the frontend something real to refresh against right now.
-app.post("/api/market/session-listings", async (req, res) => {
+app.post("/api/market/session-listings", requireAuth, async (req, res) => {
   try {
     const { registry } = req.body || {};
     const txs = Array.isArray(registry?.txs) ? registry.txs : [];
@@ -401,7 +473,12 @@ app.post("/api/market/session-listings", async (req, res) => {
   }
 });
 
-connectDB();
+connectDB().then((connected) => {
+  dbReady = connected;
+  if (!connected) {
+    console.warn("⚠️ Auth routes disabled until MongoDB becomes available.");
+  }
+});
 app.listen(PORT, () => {
   console.log(`✅ Node router listening on http://localhost:${PORT}`);
 });

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import re
 from typing import Any, Dict, List
 
@@ -66,6 +67,96 @@ def _format_context(evidence: List[Dict[str, Any]]) -> str:
     return "\n".join(parts)
 
 
+def retrieve_context(question: str, vs, *, top_k: int = 6, threshold: float = 0.30) -> Dict[str, Any]:
+    q = (question or "").strip()
+    evidence = retrieve_evidence(
+        vs,
+        q,
+        top_k=top_k,
+        threshold=threshold,
+        diversity=True,
+        per_file_cap=2,
+        use_keyword_boost=True,
+    )
+    return {
+        "question": q,
+        "evidence": evidence,
+        "context": _format_context(evidence),
+    }
+
+
+def _parse_hourly_timestamp(value: str) -> tuple[bool, str]:
+    raw = (value or "").strip()
+    if not raw:
+        return False, "missing"
+
+    candidate = raw.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(candidate)
+    except ValueError:
+        return False, "must be ISO 8601, for example 2025-04-20T14:00:00Z"
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+
+    if parsed.minute != 0 or parsed.second != 0 or parsed.microsecond != 0:
+        return False, "must use hourly granularity with minutes and seconds set to 00"
+
+    return True, ""
+
+
+def validate_action_request(action: str, payload: Dict[str, Any], vs) -> Dict[str, Any]:
+    action_name = (action or "").strip()
+    payload = payload or {}
+
+    query = f"Validate action {action_name} for payload: {payload}"
+    retrieved = retrieve_context(query, vs, top_k=4, threshold=0.22)
+
+    violations: List[str] = []
+    warnings: List[str] = []
+
+    if action_name == "cert_create":
+        prod_start = str(payload.get("prod_start") or "").strip()
+        prod_end = str(payload.get("prod_end") or "").strip()
+
+        if not prod_start or not prod_end:
+            warnings.append(
+                "Production start/end timestamps were not supplied. EnergyTag-style hourly validation is limited without them."
+            )
+        else:
+            start_ok, start_msg = _parse_hourly_timestamp(prod_start)
+            end_ok, end_msg = _parse_hourly_timestamp(prod_end)
+            if not start_ok:
+                violations.append(f"prod_start {start_msg}")
+            if not end_ok:
+                violations.append(f"prod_end {end_msg}")
+
+            if start_ok and end_ok:
+                start_dt = datetime.fromisoformat(prod_start.replace("Z", "+00:00"))
+                end_dt = datetime.fromisoformat(prod_end.replace("Z", "+00:00"))
+                if end_dt <= start_dt:
+                    violations.append("prod_end must be later than prod_start")
+
+        energy_amount = payload.get("energy_amount")
+        if energy_amount is None or int(energy_amount) <= 0:
+            violations.append("energy_amount must be greater than 0")
+
+        if not str(payload.get("energy_source") or "").strip():
+            violations.append("energy_source is required")
+
+        if not str(payload.get("location") or "").strip():
+            violations.append("location is required")
+
+    return {
+        "success": True,
+        "available": True,
+        "allow": len(violations) == 0,
+        "violations": violations,
+        "warnings": warnings,
+        "evidence": retrieved["evidence"],
+    }
+
+
 def answer_question(question: str, vs, *, top_k: int = 6, threshold: float = 0.30) -> str:
     """
     vs: LangChain FAISS vectorstore (from rag_index.load_index()).
@@ -92,18 +183,8 @@ def answer_question(question: str, vs, *, top_k: int = 6, threshold: float = 0.3
             "If you still want, rephrase your question and include a GEC keyword (e.g., “in our GEC project, …”)."
         )
 
-    evidence = retrieve_evidence(
-        vs,
-        q,
-        top_k=top_k,
-        threshold=threshold,
-        diversity=True,
-        per_file_cap=2,
-        use_keyword_boost=True,
-    )
-
-    context = _format_context(evidence)
-    llm = get_llm()
+    retrieved = retrieve_context(q, vs, top_k=top_k, threshold=threshold)
+    context = retrieved["context"]
 
     # ✅ If RAG finds nothing, still answer something useful
     if not context.strip():
@@ -114,5 +195,6 @@ def answer_question(question: str, vs, *, top_k: int = 6, threshold: float = 0.3
             "**transferred**, and **retired** to claim renewable consumption and avoid double-counting."
         )
 
+    llm = get_llm()
     chain = RAG_PROMPT | llm | StrOutputParser()
     return chain.invoke({"context": context, "question": q})

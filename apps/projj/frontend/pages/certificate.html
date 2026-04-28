@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Granular Energy Certificate</title>
+  <link rel="icon" type="image/png" href="../assets/logo1.png" />
+
+  <link rel="stylesheet" href="../styles/certificate.css" />
+</head>
+<body>
+  <div class="certificate-toolbar" role="toolbar" aria-label="Certificate actions">
+    <button id="btn-back" type="button" aria-label="Back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>Back</span>
+    </button>
+    <span class="spacer"></span>
+    <button id="btn-print" type="button" class="primary">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      <span>Download PDF</span>
+    </button>
+    <a id="btn-explorer" class="cert-btn" href="#" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <span>Open on Aptos Explorer</span>
+    </a>
+    <button id="btn-copy-link" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>Copy share link</span>
+    </button>
+    <button id="btn-png" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 15l2-2 2 2 4-4 3 3"/><path d="M7 8h.01"/></svg>
+      <span>Download PNG</span>
+    </button>
+  </div>
+
+  <main class="certificate-stage" role="main" aria-label="Granular Energy Certificate">
+    <div id="certificate-page-detail" class="empty-state"></div>
+    <p class="cert-empty" id="cert-empty" hidden>
+      No certificate data found in this browser. Open this page from the chat
+      success message after issuing a certificate, or pass a <code>?tx=…</code>
+      query string with a known transaction hash.
+    </p>
+  </main>
+
+  <script src="../scripts/certificate-view.js"></script>
+  <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    const STORAGE_PREFIX = "gec:cert:view::";
+
+    function $(id) { return document.getElementById(id); }
+
+    function getQueryParam(name) {
+      try {
+        return new URL(window.location.href).searchParams.get(name);
+      } catch (e) { return null; }
+    }
+
+    function loadPayload(tx) {
+      if (!tx) return null;
+      try {
+        const raw = localStorage.getItem(STORAGE_PREFIX + tx);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function normalizeHost(host) {
+      const value = String(host || "").trim();
+      if (!value || value === "::" || value === "[::]" || value === "0.0.0.0") return "127.0.0.1";
+      return value;
+    }
+
+    function inferApiOrigin() {
+      const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+      const host = normalizeHost(isHttp && window.location.hostname ? window.location.hostname : "127.0.0.1");
+      return `http://${host}:3000`;
+    }
+
+    function getAuthToken() {
+      const keys = ["ecb-token", "token", "gecToken_plain"];
+      for (const k of keys) {
+        try {
+          const v = localStorage.getItem(k);
+          if (v && String(v).trim()) return String(v).trim();
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    async function fetchCertificateById(certId) {
+      const origin = inferApiOrigin();
+      const token = getAuthToken();
+      const res = await fetch(`${origin}/api/certificates/${encodeURIComponent(certId)}`, {
+        method: "GET",
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      });
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+      if (!res.ok) {
+        const msg = (data && (data.error?.message || data.error || data.detail?.message || data.detail)) || res.statusText;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    function setExplorerLink(url) {
+      const link = $("btn-explorer");
+      if (!link) return;
+      if (url) {
+        link.href = url;
+        link.removeAttribute("aria-disabled");
+        link.style.opacity = "";
+        link.style.pointerEvents = "";
+      } else {
+        link.href = "#";
+        link.setAttribute("aria-disabled", "true");
+        link.style.opacity = "0.45";
+        link.style.pointerEvents = "none";
+      }
+    }
+
+    function wireToolbar() {
+      const back = $("btn-back");
+      if (back) {
+        back.addEventListener("click", () => {
+          if (window.history.length > 1) window.history.back();
+          else window.location.href = "index.html";
+        });
+      }
+      const printBtn = $("btn-print");
+      if (printBtn) printBtn.addEventListener("click", () => window.print());
+
+      const copyBtn = $("btn-copy-link");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", async () => {
+          const url = window.location.href;
+          const span = copyBtn.querySelector("span");
+          const original = span ? span.textContent : "Copy share link";
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(url);
+            } else {
+              const ta = document.createElement("textarea");
+              ta.value = url;
+              ta.style.position = "fixed";
+              ta.style.top = "-9999px";
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand("copy");
+              document.body.removeChild(ta);
+            }
+            if (span) {
+              span.textContent = "Copied!";
+              setTimeout(() => { span.textContent = original; }, 1400);
+            }
+          } catch (e) { console.error("copy failed", e); }
+        });
+      }
+
+      const pngBtn = $("btn-png");
+      if (pngBtn) {
+        pngBtn.addEventListener("click", async () => {
+          const node = document.querySelector(".certificate-shell");
+          if (!node || !window.htmlToImage) return;
+          const span = pngBtn.querySelector("span");
+          const original = span ? span.textContent : "Download PNG";
+          try {
+            if (span) span.textContent = "Preparing…";
+            const dataUrl = await window.htmlToImage.toPng(node, { pixelRatio: 2, backgroundColor: "#fbf6e5" });
+            const a = document.createElement("a");
+            a.href = dataUrl;
+            a.download = (document.title || "gec-certificate").replace(/[^\w\-]+/g, "_") + ".png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            if (span) { span.textContent = "Saved!"; setTimeout(() => { span.textContent = original; }, 1400); }
+          } catch (e) {
+            console.error("png export failed", e);
+            if (span) { span.textContent = "Failed"; setTimeout(() => { span.textContent = original; }, 1400); }
+          }
+        });
+      }
+    }
+
+    function init() {
+      wireToolbar();
+
+      const idParam = getQueryParam("id");
+      const txParam = getQueryParam("tx") || getQueryParam("txHash") || (idParam && /^0x[0-9a-f]{20,}$/i.test(idParam) ? idParam : null);
+      const payload = txParam ? loadPayload(txParam) : null;
+      const container = $("certificate-page-detail");
+      const empty = $("cert-empty");
+
+      if (typeof window.renderCertificate !== "function") {
+        if (container) container.style.display = "none";
+        if (empty) empty.hidden = false;
+        setExplorerLink(null);
+        return;
+      }
+
+      // Path A: tx hash → localStorage payload (fast, works directly from chat card)
+      if (payload) {
+        if (empty) empty.hidden = true;
+        const data = window.renderCertificate(container, payload);
+        setExplorerLink(payload.explorer_url || (data && data.explorerUrl) || null);
+        const certId = data && data.displayId ? data.displayId : null;
+        document.title = certId ? `${certId} · Granular Energy Certificate` : "Granular Energy Certificate";
+        return;
+      }
+
+      // Path B: certificate id → authenticated fetch from Node proxy
+      if (idParam) {
+        if (empty) empty.hidden = true;
+        container.innerHTML = "<div style='color:#d8d2bd;padding:18px;text-align:center;'>Loading certificate…</div>";
+        fetchCertificateById(idParam)
+          .then((data) => {
+            const payload2 = data?.document || data?.certificate || data;
+            const rendered = window.renderCertificate(container, payload2);
+            setExplorerLink(payload2?.explorerUrl || payload2?.explorer_url || null);
+            const certId2 = rendered && rendered.displayId ? rendered.displayId : null;
+            document.title = certId2 ? `${certId2} · Granular Energy Certificate` : "Granular Energy Certificate";
+          })
+          .catch((e) => {
+            if (container) container.style.display = "none";
+            if (empty) {
+              empty.hidden = false;
+              empty.innerHTML = "Unable to load certificate. " + String(e?.message || e) + "<br/><br/>If this is a shared link, please log in first.";
+            }
+            setExplorerLink(null);
+          });
+        return;
+      }
+
+      if (container) container.style.display = "none";
+      if (empty) empty.hidden = false;
+      setExplorerLink(null);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>

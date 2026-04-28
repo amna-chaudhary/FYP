@@ -3,6 +3,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Verify code · EnergyCert Bot</title>
@@ -14,8 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  />
+    rel="stylesheet" />
 
   <script>
     /* Theme detection — set early to avoid flash */
@@ -24,7 +24,7 @@
         var stored = localStorage.getItem("ecb-theme");
         var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.setAttribute("data-theme", stored || (prefersDark ? "dark" : "light"));
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
 
@@ -54,23 +54,23 @@
       --ink-200: #e5edf0;
       --ink-100: #f1f5f5;
 
-      --auth-primary:       var(--teal-500);
-      --auth-primary-dark:  var(--teal-700);
-      --auth-primary-soft:  rgba(0, 152, 139, 0.08);
-      --auth-primary-ring:  rgba(0, 152, 139, 0.18);
+      --auth-primary: var(--teal-500);
+      --auth-primary-dark: var(--teal-700);
+      --auth-primary-soft: rgba(0, 152, 139, 0.08);
+      --auth-primary-ring: rgba(0, 152, 139, 0.18);
 
-      --auth-text:          var(--ink-900);
-      --auth-text-muted:    #5a706c;
-      --auth-text-faint:    #8a9c98;
-      --auth-bg:            #eaf6f4;
-      --auth-surface:       #ffffff;
-      --auth-border:        rgba(12, 46, 43, 0.10);
+      --auth-text: var(--ink-900);
+      --auth-text-muted: #5a706c;
+      --auth-text-faint: #8a9c98;
+      --auth-bg: #eaf6f4;
+      --auth-surface: #ffffff;
+      --auth-border: rgba(12, 46, 43, 0.10);
       --auth-border-strong: rgba(12, 46, 43, 0.18);
 
-      --auth-error:         #b91c1c;
-      --auth-error-bg:      #fef2f2;
-      --auth-success:       #047857;
-      --auth-success-bg:    #ecfdf5;
+      --auth-error: #b91c1c;
+      --auth-error-bg: #fef2f2;
+      --auth-success: #047857;
+      --auth-success-bg: #ecfdf5;
 
       --shadow-card: 0 30px 80px rgba(12, 46, 43, 0.18), 0 4px 16px rgba(12, 46, 43, 0.06);
       --shadow-glow: 0 18px 40px rgba(0, 152, 139, 0.25);
@@ -80,23 +80,23 @@
     }
 
     [data-theme="dark"] {
-      --auth-primary:       #22d3bf;
-      --auth-primary-dark:  #4ce0cf;
-      --auth-primary-soft:  rgba(34, 211, 191, 0.10);
-      --auth-primary-ring:  rgba(34, 211, 191, 0.22);
+      --auth-primary: #22d3bf;
+      --auth-primary-dark: #4ce0cf;
+      --auth-primary-soft: rgba(34, 211, 191, 0.10);
+      --auth-primary-ring: rgba(34, 211, 191, 0.22);
 
-      --auth-text:          #e8f4f2;
-      --auth-text-muted:    #97aba6;
-      --auth-text-faint:    #627570;
-      --auth-bg:            #050d0c;
-      --auth-surface:       #0d1815;
-      --auth-border:        rgba(255, 255, 255, 0.08);
+      --auth-text: #e8f4f2;
+      --auth-text-muted: #97aba6;
+      --auth-text-faint: #627570;
+      --auth-bg: #050d0c;
+      --auth-surface: #0d1815;
+      --auth-border: rgba(255, 255, 255, 0.08);
       --auth-border-strong: rgba(255, 255, 255, 0.16);
 
-      --auth-error:         #fca5a5;
-      --auth-error-bg:      rgba(220, 38, 38, 0.12);
-      --auth-success:       #6ee7b7;
-      --auth-success-bg:    rgba(4, 120, 87, 0.18);
+      --auth-error: #fca5a5;
+      --auth-error-bg: rgba(220, 38, 38, 0.12);
+      --auth-success: #6ee7b7;
+      --auth-success-bg: rgba(4, 120, 87, 0.18);
 
       --shadow-card: 0 30px 80px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
     }
@@ -104,16 +104,34 @@
     /* ============================================================
        Reset & base
        ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
       font-family: var(--font-body);
       color: var(--auth-text);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       height: 100%;
     }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; cursor: pointer; border: none; background: none; }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
 
     /* ============================================================
        Page shell — centered verification layout
@@ -135,20 +153,34 @@
       z-index: 0;
       animation: float 22s ease-in-out infinite;
     }
+
     body::before {
-      width: 520px; height: 520px;
+      width: 520px;
+      height: 520px;
       background: radial-gradient(circle, rgba(0, 152, 139, 0.25), transparent 70%);
-      top: -100px; left: -100px;
+      top: -100px;
+      left: -100px;
     }
+
     body::after {
-      width: 460px; height: 460px;
+      width: 460px;
+      height: 460px;
       background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
-      bottom: -100px; right: -100px;
+      bottom: -100px;
+      right: -100px;
       animation-delay: -11s;
     }
+
     @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50%      { transform: translate(40px, -50px) scale(1.06); }
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate(40px, -50px) scale(1.06);
+      }
     }
 
     .auth-shell {
@@ -175,10 +207,17 @@
       text-align: center;
       animation: cardIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-    
+
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(16px) scale(0.985); }
-      to   { opacity: 1; transform: translateY(0)   scale(1); }
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     /* Theme toggle placed dynamically outside or top corner */
@@ -198,22 +237,39 @@
       transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.4s ease;
       z-index: 5;
     }
+
     .auth-theme-toggle:hover {
       color: var(--auth-primary);
       border-color: var(--auth-border-strong);
       background: var(--auth-primary-soft);
       transform: rotate(20deg);
     }
+
     .auth-theme-toggle.is-spinning {
       animation: spin360 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     @keyframes spin360 {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
-    .auth-theme-toggle .icon-sun { display: none; }
-    [data-theme="dark"] .auth-theme-toggle .icon-moon { display: none; }
-    [data-theme="dark"] .auth-theme-toggle .icon-sun { display: block; }
+
+    .auth-theme-toggle .icon-sun {
+      display: none;
+    }
+
+    [data-theme="dark"] .auth-theme-toggle .icon-moon {
+      display: none;
+    }
+
+    [data-theme="dark"] .auth-theme-toggle .icon-sun {
+      display: block;
+    }
 
     /* ============================================================
        Card Headers & Branding
@@ -226,7 +282,7 @@
       margin-bottom: 32px;
       animation: fadeUp 0.6s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-    
+
     /* Clean, tech-style inner rotating dashed ring */
     .otp-logo::before {
       content: "";
@@ -266,21 +322,36 @@
       width: 56px;
       height: auto;
       object-fit: contain;
-      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
       z-index: 1;
     }
+
     [data-theme="dark"] .otp-logo img {
-      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
     }
 
     @keyframes spinDash {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
-    
+
     @keyframes pulseRing {
-      0%, 100% { transform: scale(1); opacity: 0.2; }
-      50%      { transform: scale(1.05); opacity: 0.4; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.2;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 0.4;
+      }
     }
 
     h1 {
@@ -293,6 +364,7 @@
       margin-bottom: 12px;
       animation: fadeUp 0.6s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
+
     h1 .accent {
       font-style: italic;
       font-weight: 400;
@@ -310,6 +382,7 @@
       margin-bottom: 32px;
       animation: fadeUp 0.6s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
+
     .otp-desc strong {
       color: var(--auth-text);
       font-weight: 600;
@@ -327,9 +400,30 @@
       text-align: left;
       animation: fadeIn 0.3s ease;
     }
-    .auth-banner--error   { color: var(--auth-error);   background: var(--auth-error-bg);   border-color: rgba(185, 28, 28, 0.25); }
-    .auth-banner--success { color: var(--auth-success); background: var(--auth-success-bg); border-color: rgba(4, 120, 87, 0.25); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .auth-banner--error {
+      color: var(--auth-error);
+      background: var(--auth-error-bg);
+      border-color: rgba(185, 28, 28, 0.25);
+    }
+
+    .auth-banner--success {
+      color: var(--auth-success);
+      background: var(--auth-success-bg);
+      border-color: rgba(4, 120, 87, 0.25);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     .otp-grid {
       display: grid;
@@ -387,6 +481,7 @@
       box-shadow: var(--shadow-glow);
       animation: fadeUp 0.6s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
+
     .auth-submit::before {
       content: "";
       position: absolute;
@@ -396,6 +491,7 @@
       transition: opacity 0.3s ease;
       z-index: 0;
     }
+
     .auth-submit::after {
       content: "";
       position: absolute;
@@ -403,34 +499,69 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(
-        110deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.18) 50%,
-        transparent 70%
-      );
+      background: linear-gradient(110deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.18) 50%,
+          transparent 70%);
       animation: shine 4s ease-in-out infinite;
       animation-delay: 1.5s;
       pointer-events: none;
       z-index: 0;
     }
+
     @keyframes shine {
-      0%   { left: -100%; }
-      55%  { left: 100%; }
-      100% { left: 100%; }
+      0% {
+        left: -100%;
+      }
+
+      55% {
+        left: 100%;
+      }
+
+      100% {
+        left: 100%;
+      }
     }
-    .auth-submit:hover::after { animation-play-state: paused; opacity: 0; }
-    [data-theme="dark"] .auth-submit { background: var(--auth-primary); color: #061513; }
-    .auth-submit > * { position: relative; z-index: 1; }
+
+    .auth-submit:hover::after {
+      animation-play-state: paused;
+      opacity: 0;
+    }
+
+    [data-theme="dark"] .auth-submit {
+      background: var(--auth-primary);
+      color: #061513;
+    }
+
+    .auth-submit>* {
+      position: relative;
+      z-index: 1;
+    }
+
     .auth-submit:hover {
       transform: translateY(-2px);
       box-shadow: 0 22px 44px rgba(0, 152, 139, 0.4);
       color: #fff;
     }
-    .auth-submit:hover::before { opacity: 1; }
-    .auth-submit:active { transform: translateY(0); }
-    .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-    .auth-submit:disabled::before { opacity: 0; }
+
+    .auth-submit:hover::before {
+      opacity: 1;
+    }
+
+    .auth-submit:active {
+      transform: translateY(0);
+    }
+
+    .auth-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .auth-submit:disabled::before {
+      opacity: 0;
+    }
+
     .auth-submit .arrow {
       width: 14px;
       height: 14px;
@@ -438,19 +569,35 @@
       position: absolute;
       right: 20px;
     }
-    .auth-submit:hover:not(:disabled) .arrow { transform: translateX(3px); }
+
+    .auth-submit:hover:not(:disabled) .arrow {
+      transform: translateX(3px);
+    }
+
     .auth-submit .spinner {
-      width: 16px; height: 16px;
+      width: 16px;
+      height: 16px;
       border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
       border-radius: 50%;
       display: none;
       animation: spin 0.8s linear infinite;
     }
-    .auth-submit.is-loading .spinner { display: block; }
+
+    .auth-submit.is-loading .spinner {
+      display: block;
+    }
+
     .auth-submit.is-loading .arrow,
-    .auth-submit.is-loading .label-default { display: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .auth-submit.is-loading .label-default {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* Helper actions below the button */
     .otp-actions-foot {
@@ -462,40 +609,63 @@
       color: var(--auth-text-muted);
       animation: fadeUp 0.6s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
-    .otp-actions-foot button, 
+
+    .otp-actions-foot button,
     .otp-actions-foot a {
       color: var(--auth-primary-dark);
       font-weight: 600;
       transition: color 0.2s ease;
       display: inline-block;
     }
+
     [data-theme="dark"] .otp-actions-foot button,
     [data-theme="dark"] .otp-actions-foot a {
       color: var(--auth-primary);
     }
-    .otp-actions-foot button:hover, 
+
+    .otp-actions-foot button:hover,
     .otp-actions-foot a:hover {
       color: var(--auth-primary);
       text-decoration: underline;
     }
+
     [data-theme="dark"] .otp-actions-foot button:hover,
     [data-theme="dark"] .otp-actions-foot a:hover {
       color: var(--teal-200);
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 520px) {
-      .otp-focused-card { padding: 40px 24px 32px; }
-      .otp-grid { gap: 8px; }
-      .otp-digit { font-size: 1.4rem; aspect-ratio: 1 / 1.25; }
+      .otp-focused-card {
+        padding: 40px 24px 32px;
+      }
+
+      .otp-grid {
+        gap: 8px;
+      }
+
+      .otp-digit {
+        font-size: 1.4rem;
+        aspect-ratio: 1 / 1.25;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
+
+      *,
+      *::before,
+      *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
@@ -507,11 +677,19 @@
 <body>
 
   <main class="auth-shell">
-    
+
     <div class="otp-focused-card">
       <button type="button" class="auth-theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
       </button>
 
       <div class="otp-logo">
@@ -521,7 +699,7 @@
       <h1>Verify your <span class="accent">email</span></h1>
       <p class="otp-desc">
         We sent a 6-digit code to <strong id="otp-email">your email</strong>.
-        <br/><span id="otp-purpose">Enter it below to continue.</span>
+        <br /><span id="otp-purpose">Enter it below to continue.</span>
       </p>
 
       <div id="otp-banner" class="auth-banner" hidden role="alert" aria-live="polite"></div>
@@ -530,18 +708,27 @@
         <input id="otp-code" type="hidden" />
 
         <div class="otp-grid" aria-label="Verification code">
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 1" autofocus />
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 2" />
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 3" />
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 4" />
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 5" />
-          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit aria-label="Digit 6" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 1" autofocus />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 2" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 3" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 4" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 5" />
+          <input class="otp-digit" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-otp-digit
+            aria-label="Digit 6" />
         </div>
 
         <button type="submit" id="otp-submit" class="auth-submit">
           <span class="spinner"></span>
           <span class="label-default">Verify code</span>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
         </button>
 
         <div class="otp-actions-foot">
@@ -566,7 +753,7 @@
           var cur = document.documentElement.getAttribute("data-theme") || "light";
           var next = cur === "dark" ? "light" : "dark";
           document.documentElement.setAttribute("data-theme", next);
-          try { localStorage.setItem("ecb-theme", next); } catch (e) {}
+          try { localStorage.setItem("ecb-theme", next); } catch (e) { }
           /* Trigger spin animation by re-adding the class */
           btn.classList.remove("is-spinning");
           void btn.offsetWidth;
@@ -578,7 +765,9 @@
       }
     })();
   </script>
+  <script src="../scripts/api-config.js"></script>
 
   <script src="../scripts/auth_otp.js"></script>
 </body>
+
 </html>

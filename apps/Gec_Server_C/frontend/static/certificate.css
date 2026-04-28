@@ -1,0 +1,398 @@
+/* ============================================================
+   Granular Energy Certificate – document layout
+   Mirrors the reference design in image.png.
+   ============================================================ */
+
+:root {
+  --cert-cream: #f6efdc;
+  --cert-cream-2: #f9f3e0;
+  --cert-paper: #ffffff;
+  --cert-green: #1d5b3a;
+  --cert-green-dark: #143f29;
+  --cert-green-soft: #2c7a4f;
+  --cert-gold: #c9a14e;
+  --cert-gold-dark: #8a6a2c;
+  --cert-ink: #1c2a23;
+  --cert-mute: #6b7d74;
+  --cert-line: rgba(20, 63, 41, 0.18);
+  --cert-dotted: rgba(20, 63, 41, 0.18);
+}
+
+.certificate-page-shell .panel,
+.certificate-page-shell .panel-header {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.certificate-main {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+/* When app.js wraps the rendered certificate in `.detail-layout` the
+   inner blocks should stay aligned with the certificate width. */
+.certificate-main .detail-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.certificate-shell {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 38px 38px 30px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #fbf6e5 0%, #f4ecd6 60%, #efe5c4 100%);
+  border: 6px solid var(--cert-green-dark);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(20, 63, 41, 0.15),
+    inset 0 0 0 4px var(--cert-cream),
+    inset 0 0 0 5px var(--cert-gold),
+    0 18px 48px -22px rgba(20, 63, 41, 0.45);
+  font-family: "Georgia", "Times New Roman", serif;
+  color: var(--cert-ink);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Decorative corner ornaments */
+.certificate-shell .corner {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  color: var(--cert-green);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.certificate-shell .corner.tl { top: 8px;    left: 8px;    transform: rotate(0deg); }
+.certificate-shell .corner.tr { top: 8px;    right: 8px;   transform: rotate(90deg); }
+.certificate-shell .corner.br { bottom: 8px; right: 8px;   transform: rotate(180deg); }
+.certificate-shell .corner.bl { bottom: 8px; left: 8px;    transform: rotate(270deg); }
+
+.certificate-document {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+}
+
+/* ---------- Header ---------- */
+.certificate-header {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 4px 0 0;
+}
+
+.certificate-logo {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: var(--cert-paper);
+  border: 2px solid var(--cert-green);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px rgba(20, 63, 41, 0.18);
+}
+.certificate-logo svg { width: 64%; height: 64%; }
+
+.certificate-title {
+  margin: 4px 0 0;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 2.8vw, 2.35rem);
+  letter-spacing: 0.02em;
+  color: var(--cert-green-dark);
+  line-height: 1.05;
+}
+
+.certificate-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  color: var(--cert-green-dark);
+}
+.certificate-subtitle .gec {
+  letter-spacing: 0.4em;
+}
+
+/* ---------- Top info bar ---------- */
+.certificate-topbar {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  background: var(--cert-paper);
+  border-radius: 14px;
+  padding: 14px 18px;
+  border: 1px solid rgba(20, 63, 41, 0.12);
+  box-shadow: 0 2px 6px rgba(20, 63, 41, 0.06);
+}
+
+.certificate-topbar .stat {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: center;
+  position: relative;
+  padding: 4px 8px;
+}
+
+.certificate-topbar .stat + .stat::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: rgba(20, 63, 41, 0.16);
+}
+
+.certificate-topbar .stat .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(29, 91, 58, 0.08);
+  color: var(--cert-green);
+  display: grid;
+  place-items: center;
+}
+.certificate-topbar .stat .icon svg { width: 70%; height: 70%; }
+
+.certificate-topbar .stat label {
+  display: block;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cert-mute);
+  margin-bottom: 2px;
+}
+
+.certificate-topbar .stat .value {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--cert-ink);
+  word-break: break-word;
+}
+
+.certificate-topbar .stat--status .value {
+  color: var(--cert-green-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.certificate-topbar .stat--status .pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(29, 91, 58, 0.12);
+  color: var(--cert-green-dark);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
+.certificate-topbar .stat--status[data-status="RETIRED"] .pill {
+  background: rgba(160, 38, 38, 0.10);
+  color: #8a1f1f;
+}
+.certificate-topbar .stat--status[data-status="LISTED"] .pill,
+.certificate-topbar .stat--status[data-status="OPEN"] .pill,
+.certificate-topbar .stat--status[data-status="PENDING"] .pill {
+  background: rgba(201, 161, 78, 0.18);
+  color: var(--cert-gold-dark);
+}
+
+/* ---------- Section cards ---------- */
+.cert-section {
+  background: var(--cert-paper);
+  border-radius: 12px;
+  border: 1px solid rgba(20, 63, 41, 0.12);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(20, 63, 41, 0.05);
+}
+
+.cert-section__header {
+  background: var(--cert-green);
+  color: #fff;
+  text-align: center;
+  padding: 10px 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  font-family: "Georgia", "Times New Roman", serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+.cert-section__header .arrow {
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+.cert-section__body { padding: 4px 18px 4px; }
+
+.cert-row {
+  display: grid;
+  grid-template-columns: 26px minmax(180px, 220px) auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px dashed var(--cert-dotted);
+}
+.cert-row:last-child { border-bottom: 0; }
+
+.cert-row .row-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--cert-green);
+  display: grid;
+  place-items: center;
+}
+.cert-row .row-icon svg { width: 100%; height: 100%; }
+
+.cert-row .row-label {
+  color: var(--cert-mute);
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 0.95rem;
+}
+
+.cert-row .row-sep {
+  color: var(--cert-mute);
+  font-weight: 700;
+}
+
+.cert-row .row-value {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 700;
+  color: var(--cert-ink);
+  word-break: break-word;
+}
+
+.cert-row .row-value.mono,
+.cert-row .row-value .hash {
+  font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.cert-row .row-value .aptos {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+.cert-row .row-value .aptos svg { width: 18px; height: 18px; }
+
+/* ---------- Footer ---------- */
+.certificate-footer {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(20, 63, 41, 0.18);
+  display: grid;
+  grid-template-columns: 100px 1fr 140px;
+  align-items: end;
+  gap: 16px;
+}
+
+.certificate-footer .verified-badge {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+}
+.certificate-footer .verified-badge svg { width: 100%; height: 100%; }
+
+.certificate-footer .authority {
+  text-align: center;
+  display: grid;
+  gap: 4px;
+}
+.certificate-footer .authority h3 {
+  margin: 0;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: var(--cert-green-dark);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.certificate-footer .authority p {
+  margin: 0;
+  color: var(--cert-mute);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.certificate-footer .signature {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.certificate-footer .signature .squiggle { width: 130px; height: 36px; color: var(--cert-ink); }
+.certificate-footer .signature .squiggle path { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.certificate-footer .signature .signed-line {
+  width: 130px;
+  border-top: 1px solid rgba(20, 63, 41, 0.45);
+  padding-top: 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cert-mute);
+}
+
+/* ---------- Action toolbar (NOT printed) ---------- */
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px auto 0;
+  max-width: 860px;
+  justify-content: flex-end;
+}
+
+.certificate-history-wrap {
+  max-width: 860px;
+  margin: 22px auto 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .certificate-shell { padding: 22px 18px; }
+  .certificate-topbar { grid-template-columns: 1fr; gap: 6px; }
+  .certificate-topbar .stat + .stat::before { display: none; }
+  .certificate-footer { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .cert-row { grid-template-columns: 22px 1fr; }
+  .cert-row .row-sep { display: none; }
+  .cert-row .row-label { grid-column: 2 / 3; font-size: 0.85rem; }
+  .cert-row .row-value { grid-column: 2 / 3; }
+  .cert-row .row-icon { grid-row: span 2; align-self: start; margin-top: 4px; }
+}
+
+/* ---------- Print ---------- */
+@media print {
+  body { background: #fff !important; padding: 0; margin: 0; }
+  .app-header,
+  .header-actions,
+  .notification-panel,
+  .certificate-actions,
+  .ghost-link,
+  .detail-actions,
+  .alert,
+  .panel-header { display: none !important; }
+  .panel { box-shadow: none; border: 0; padding: 0; background: #fff; }
+  .certificate-shell {
+    box-shadow: none;
+    margin: 0 auto;
+    page-break-inside: avoid;
+  }
+}
