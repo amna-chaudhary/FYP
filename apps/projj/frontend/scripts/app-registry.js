@@ -884,15 +884,28 @@ function shortPrompt(text, max = 80) {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
 
+function shortHash(hex, lead = 10, tail = 8) {
+  const s = String(hex || "").trim();
+  if (!s) return "";
+  if (s.length <= lead + tail + 3) return s;
+  return `${s.slice(0, lead)}…${s.slice(-tail)}`;
+}
+
+function shortAccountLabel(s, max = 22) {
+  const t = String(s || "").trim();
+  if (!t || t === "—") return t || "—";
+  if (t.length <= max) return t;
+  return `${t.slice(0, 12)}…${t.slice(-8)}`;
+}
+
 function renderRegistry() {
   const summaryEl = document.getElementById("registry-summary");
   const timelineEl = document.getElementById("registry-timeline");
   const rejectedEl = document.getElementById("registry-rejected");
   const accountFilterEl = document.getElementById("reg-account-filter");
   const certListEl = document.getElementById("registry-cert-list");
-  const certPreviewEl = document.getElementById("registry-cert-preview");
 
-  if (!summaryEl || !timelineEl || !rejectedEl || !accountFilterEl || !certListEl || !certPreviewEl) return;
+  if (!summaryEl || !timelineEl || !rejectedEl || !accountFilterEl || !certListEl) return;
 
   const accounts = Object.values((state.registry && state.registry.accounts) || {});
   const txsSource = Array.isArray(state.registry?.txs) ? state.registry.txs : [];
@@ -950,16 +963,11 @@ function renderRegistry() {
   }
   const certItems = Array.from(uniqueByTx.values()).reverse();
 
-  const selectedTx = state.registrySelectedTxHash || (certItems[certItems.length - 1]?.proof?.tx_hash || null);
-  state.registrySelectedTxHash = selectedTx;
-
   if (!certItems.length) {
     certListEl.innerHTML = '<div class="reg-empty">No certificates issued in this session yet.</div>';
-    certPreviewEl.innerHTML = '<div class="reg-empty">Issue a certificate in chat to preview it here.</div>';
   } else {
     certListEl.innerHTML = certItems.map((t) => {
       const txHash = t.proof.tx_hash;
-      const active = txHash === selectedTx ? "is-active" : "";
       let displayId = "";
       try {
         const raw = localStorage.getItem(CERT_VIEW_STORAGE_PREFIX + txHash);
@@ -968,11 +976,13 @@ function renderRegistry() {
           displayId = p.cert_id && String(p.cert_id).startsWith("GEC-") ? String(p.cert_id) : "";
         }
       } catch (e) {}
-      const idText = displayId || ("TX " + String(txHash).slice(0, 10) + "…");
+      const idText = displayId || ("TX " + shortHash(txHash, 10, 8));
       const src = t.energySource || "Renewable";
       const qty = formatGecNumber(t.quantity || 0);
+      const txShort = shortHash(txHash, 8, 6);
+      const href = _certViewHref(txHash);
       return `
-        <div class="reg-cert-item ${active}" data-tx="${txHash}">
+        <div class="reg-cert-item">
           <div class="reg-cert-item-top">
             <div class="reg-cert-id">${idText}</div>
             <span class="reg-cert-pill">ACTIVE</span>
@@ -980,39 +990,15 @@ function renderRegistry() {
           <div class="reg-cert-meta">
             <span><strong>${qty}</strong> kWh</span>
             <span>${src}</span>
-            <span>${shortPrompt(t.to, 22)}</span>
+            <span>${shortAccountLabel(t.to)}</span>
+          </div>
+          <div class="reg-cert-tx-sub" title="${String(txHash)}">Chain TX · ${txShort}</div>
+          <div class="reg-cert-actions">
+            <a class="reg-cert-link" href="${href}" target="_blank" rel="noopener noreferrer">View certificate ↗</a>
           </div>
         </div>
       `;
     }).join("");
-
-    // Preview render
-    if (selectedTx) {
-      let payload = null;
-      try {
-        const raw = localStorage.getItem(CERT_VIEW_STORAGE_PREFIX + selectedTx);
-        payload = raw ? JSON.parse(raw) : null;
-      } catch (e) { payload = null; }
-
-      if (payload && typeof window.renderCertificate === "function") {
-        certPreviewEl.innerHTML = "";
-        window.renderCertificate(certPreviewEl, payload);
-      } else {
-        certPreviewEl.innerHTML = '<div class="reg-empty">Certificate payload not found. Issue a new certificate to generate a preview.</div>';
-      }
-    }
-
-    if (!certListEl.dataset.bound) {
-      certListEl.dataset.bound = "1";
-      certListEl.addEventListener("click", (e) => {
-        const item = e.target.closest("[data-tx]");
-        if (!item) return;
-        const tx = item.getAttribute("data-tx");
-        if (!tx) return;
-        state.registrySelectedTxHash = tx;
-        renderRegistry();
-      });
-    }
   }
 
   const txs = txsSource.filter((t) =>
@@ -1050,14 +1036,6 @@ function renderRegistry() {
             ? "Query"
             : "Tx";
 
-        const mainLine =
-          t.action === "query"
-            ? `<span>Balance query</span>`
-            : t.action === "failed"
-            ? `<span>Transaction failed</span>`
-            : `<span><strong>${formatGecNumber(t.quantity)}</strong> GECs</span>
-               <span>${t.from} → ${t.to}</span>`;
-
         const proof = t.proof || {};
 
         if (t.action === "issue" && proof.tx_hash && !_certHasPersisted(proof.tx_hash)) {
@@ -1078,31 +1056,62 @@ function renderRegistry() {
           _certPersist(synth);
         }
 
-        const viewCertLink =
-          t.action === "issue" && proof.tx_hash
-            ? `<a href="${_certViewHref(proof.tx_hash)}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">View certificate ↗</a>`
-            : "";
+        let summaryHtml = "";
+        if (t.action === "query") {
+          summaryHtml = "Balance query for this session";
+        } else if (t.action === "failed") {
+          summaryHtml = "Transaction did not complete successfully";
+        } else {
+          summaryHtml = `
+            <strong>${formatGecNumber(t.quantity)}</strong> GECs
+            <span class="reg-hash-inline">${shortAccountLabel(t.from)} → ${shortAccountLabel(t.to)}</span>`;
+        }
 
-        const proofLine =
-          (proof.tx_hash || proof.metadata_hash || proof.onchain_id || proof.explorer_url || viewCertLink)
-            ? `<div class="reg-tx-proof" style="margin-top:4px;font-size:0.75rem;color:#6b7280;">
-                 ${proof.tx_hash ? `<div><strong>tx_hash:</strong> ${proof.tx_hash}</div>` : ""}
-                 ${proof.metadata_hash ? `<div><strong>metadata_hash:</strong> ${proof.metadata_hash}</div>` : ""}
-                 ${proof.onchain_id ? `<div><strong>onchain_id:</strong> ${proof.onchain_id}</div>` : ""}
-                 ${proof.explorer_url ? `<div><a href="${proof.explorer_url}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Explorer ↗</a></div>` : ""}
-                 ${viewCertLink ? `<div style="margin-top:2px;">${viewCertLink}</div>` : ""}
-               </div>`
-            : "";
+        const actions = [];
+        if (proof.explorer_url) {
+          actions.push(
+            `<a href="${proof.explorer_url}" target="_blank" rel="noopener noreferrer">Open in Explorer ↗</a>`
+          );
+        }
+        if (t.action === "issue" && proof.tx_hash) {
+          actions.push(
+            `<a href="${_certViewHref(proof.tx_hash)}" target="_blank" rel="noopener noreferrer">View certificate ↗</a>`
+          );
+        }
+        const actionsHtml = actions.length
+          ? `<div class="reg-tx-actions">${actions.join("")}</div>`
+          : "";
+
+        const detailParts = [];
+        if (proof.tx_hash) {
+          detailParts.push(
+            `<div class="reg-tx-detail-row"><span class="reg-tx-detail-k">tx_hash</span><span class="reg-tx-detail-v">${proof.tx_hash}</span></div>`
+          );
+        }
+        if (proof.metadata_hash) {
+          detailParts.push(
+            `<div class="reg-tx-detail-row"><span class="reg-tx-detail-k">metadata_hash</span><span class="reg-tx-detail-v">${proof.metadata_hash}</span></div>`
+          );
+        }
+        if (proof.onchain_id) {
+          detailParts.push(
+            `<div class="reg-tx-detail-row"><span class="reg-tx-detail-k">onchain_id</span><span class="reg-tx-detail-v">${proof.onchain_id}</span></div>`
+          );
+        }
+        const detailsHtml = detailParts.length
+          ? `<details class="reg-tx-details"><summary>Technical details</summary>${detailParts.join("")}</details>`
+          : "";
 
         return `
-          <div class="reg-tx-row">
-            <div class="reg-tx-time">${t.time}</div>
-            <div><span class="${pillClass}">${label}</span></div>
-            <div class="reg-tx-main">
-              ${mainLine}
-              <span class="reg-tx-prompt">Prompt · ${shortPrompt(t.prompt, 70)}</span>
-              ${proofLine}
+          <div class="reg-tx-card">
+            <div class="reg-tx-card-head">
+              <span class="reg-tx-time">${t.time}</span>
+              <span class="${pillClass}">${label}</span>
             </div>
+            <div class="reg-tx-summary">${summaryHtml}</div>
+            <span class="reg-tx-prompt">Prompt · ${shortPrompt(t.prompt, 120)}</span>
+            ${actionsHtml}
+            ${detailsHtml}
           </div>
         `;
       })
