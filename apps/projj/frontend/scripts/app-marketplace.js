@@ -252,8 +252,8 @@ function buildDynamicOpportunities() {
     ? state.marketplace.manualDemands
     : [];
 
-  if (!txs.length && !manualListings.length) {
-    return getDemoOpportunities();
+  if (!txs.length && !manualListings.length && !manualDemands.length) {
+    return [];
   }
 
   const issued = txs.filter((tx) => tx.action === "issue");
@@ -362,7 +362,7 @@ function buildDynamicOpportunities() {
   });
 
   if (!opportunities.length) {
-    return getDemoOpportunities();
+    return [];
   }
 
   return opportunities;
@@ -569,10 +569,8 @@ function updateMarketplaceOpportunities() {
   listEl.innerHTML = opportunities.map(renderOpportunityCard).join("");
 
   if (footerEl) {
-    const hasDemo = opportunities.some((opp) => opp.raw && opp.raw.demo);
-    footerEl.textContent = hasDemo
-      ? `Showing ${opportunities.length} sample opportunit${opportunities.length > 1 ? "ies" : "y"} for demo preview.`
-      : `Showing ${opportunities.length} opportunit${opportunities.length > 1 ? "ies" : "y"} from session registry activity.`;
+    footerEl.textContent =
+      `Showing ${opportunities.length} opportunit${opportunities.length > 1 ? "ies" : "y"} from session registry activity.`;
   }
 }
 
