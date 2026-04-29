@@ -21,6 +21,7 @@ const DEFAULT_CERT_LOCATION =
   "Lahore";
 
 let dbReady = false;
+const actionRouteHints = new Map();
 
 app.use(cors(
   { origin: '*', credentials: true }
@@ -168,7 +169,30 @@ function isActionIntent(text) {
 function isActionFollowup(text) {
   const t = String(text || "").trim().toLowerCase();
   if (!t) return false;
-  return /^(yes|y|no|n|cancel|confirm|proceed|continue|ok|okay)$/i.test(t);
+  return /^(yes|y|no|n|cancel|confirm|proceed|continue|ok|okay|go ahead|do it|sure)$/i.test(t);
+}
+
+function markActionRouteHint(userKey) {
+  if (!userKey) return;
+  actionRouteHints.set(String(userKey), Date.now());
+}
+
+function shouldUseActionRouteHint(userKey, text) {
+  if (!userKey) return false;
+  const key = String(userKey);
+  const ts = actionRouteHints.get(key);
+  if (!ts) return false;
+
+  const active = Date.now() - ts <= 5 * 60 * 1000;
+  if (!active) {
+    actionRouteHints.delete(key);
+    return false;
+  }
+
+  const t = String(text || "").trim().toLowerCase();
+  if (!t) return false;
+  if (isActionFollowup(t)) return true;
+  return t.length <= 24 && t.split(/\s+/).length <= 4;
 }
 
 function normalizeActionCommand(text) {
@@ -265,8 +289,10 @@ app.post("/api/chat", requireAuth, async (req, res) => {
   const normalized = normalizeActionCommand(raw);
 
   try {
-    if (isActionIntent(raw) || isActionFollowup(raw)) {
+    const routeKey = uid || req.userId;
+    if (isActionIntent(raw) || isActionFollowup(raw) || shouldUseActionRouteHint(routeKey, raw)) {
       console.log("➡️ Routed to ACTION backend:", normalized);
+      markActionRouteHint(routeKey);
       const result = await callActionBackend(normalized, uid, authorization);
       return res.json(result);
     }
