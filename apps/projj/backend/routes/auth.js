@@ -225,7 +225,7 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password, deviceToken } = req.body || {};
+    const { email, password } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ success: false, error: "Email and password required" });
     }
@@ -252,20 +252,14 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const trusted = await TrustedDevice.isTrusted(user._id, deviceToken);
-    if (trusted) {
-      const token = signToken(user);
-      return res.json({ success: true, token, user, trusted: true });
-    }
-
-    const code = await Otp.issue(user.email, "login");
-    await sendOtpEmail(user.email, code, "login");
-    return res.status(200).json({
+    const token = signToken(user);
+    const issuedDeviceToken = await TrustedDevice.issueToken(user._id, "Browser");
+    return res.json({
       success: true,
-      nextStep: "verify-otp",
-      purpose: "login",
-      email: user.email,
-      message: "New device detected. Verification code sent to your email",
+      token,
+      user,
+      deviceToken: issuedDeviceToken,
+      trusted: true,
     });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
