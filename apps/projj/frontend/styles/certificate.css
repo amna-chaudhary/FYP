@@ -30,7 +30,6 @@ body {
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   color: var(--cert-ink);
   min-height: 100vh;
-  padding: 24px 16px 48px;
 }
 
 .certificate-toolbar {
