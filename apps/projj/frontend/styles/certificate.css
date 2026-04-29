@@ -436,12 +436,39 @@ a.hash:hover { text-decoration-color: var(--cert-green-dark); }
 
 /* ---------- Print ---------- */
 @media print {
-  html, body { background: #fff !important; padding: 0; margin: 0; }
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
+  body { background: #fff !important; padding: 0; margin: 0; }
+
+  html,
+  body {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden !important;
+  }
+
   .certificate-toolbar,
   .cert-empty[hidden] { display: none !important; }
+
+  .certificate-stage {
+    margin: 0;
+    gap: 0;
+    width: 100%;
+    max-width: none;
+  }
+
   .certificate-shell {
     box-shadow: none;
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    min-height: calc(297mm - 16mm);
+    padding: 20px 24px 16px;
+    box-sizing: border-box;
     page-break-inside: avoid;
   }
 }

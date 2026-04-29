@@ -380,19 +380,52 @@
 
 /* ---------- Print ---------- */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
   body { background: #fff !important; padding: 0; margin: 0; }
+
+  html,
+  body {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden !important;
+  }
+
   .app-header,
   .header-actions,
   .notification-panel,
   .certificate-actions,
+  .certificate-history-wrap,
   .ghost-link,
   .detail-actions,
   .alert,
   .panel-header { display: none !important; }
-  .panel { box-shadow: none; border: 0; padding: 0; background: #fff; }
+
+  .panel,
+  .certificate-main,
+  .detail-layout {
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    max-width: none;
+    width: 100%;
+    gap: 0;
+  }
+
   .certificate-shell {
     box-shadow: none;
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    min-height: calc(297mm - 16mm);
+    padding: 20px 24px 16px;
+    box-sizing: border-box;
     page-break-inside: avoid;
   }
 }
