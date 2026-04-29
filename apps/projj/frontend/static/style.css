@@ -5630,3 +5630,49 @@ html:not([data-theme="dark"]) .reg-filters {
 html:not([data-theme="dark"]) .market-filters-panel {
   background: linear-gradient(135deg, rgba(0, 152, 139, 0.1) 0%, rgba(255, 255, 255, 0.98) 82%);
 }
+
+/* ============================================
+   Light Theme Loading States (project-wide)
+   ============================================ */
+html:not([data-theme="dark"]) .typing {
+  color: #4b5563;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(12, 46, 43, 0.1);
+  border-radius: 999px;
+  padding: 8px 14px;
+  width: fit-content;
+}
+
+html:not([data-theme="dark"]) .typing .dot {
+  background: var(--teal-600);
+  box-shadow: 0 0 0 2px rgba(0, 152, 139, 0.12);
+}
+
+html:not([data-theme="dark"]) .send-btn:disabled,
+html:not([data-theme="dark"]) .auth-submit:disabled {
+  opacity: 0.62;
+  filter: saturate(0.8);
+}
+
+html:not([data-theme="dark"]) .dock-inner:focus-within,
+html:not([data-theme="dark"]) .hero-input:focus-within {
+  box-shadow: 0 0 0 4px rgba(0, 152, 139, 0.16), 0 10px 26px -12px rgba(0, 152, 139, 0.3);
+}
+
+html:not([data-theme="dark"]) .auth-submit.is-loading {
+  background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+  box-shadow: 0 8px 22px rgba(0, 152, 139, 0.35);
+}
+
+html:not([data-theme="dark"]) .auth-submit-spinner {
+  border-color: rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+}
+
+html:not([data-theme="dark"]) .topbar-status-dot {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.24);
+}
+
+html:not([data-theme="dark"]) .topbar-status-dot::after {
+  border-color: rgba(16, 185, 129, 0.45);
+}
