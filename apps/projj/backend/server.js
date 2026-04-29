@@ -16,6 +16,9 @@ const ACTION_BASE = (process.env.ACTION_BACKEND_URL || "http://127.0.0.1:8001").
 const DEFAULT_MARKET_ADDR =
   process.env.DEFAULT_MARKET_ADDR ||
   "0xc8c1214ccc5ae055ee5bb1eeac57cec4e760dccbdf7ca52b5d2bbcc1c7ed7cdb";
+const DEFAULT_CERT_LOCATION =
+  process.env.DEFAULT_CERT_LOCATION ||
+  "Lahore";
 
 let dbReady = false;
 
@@ -162,6 +165,26 @@ function isActionIntent(text) {
   return isExplicitActionCommand(t);
 }
 
+function normalizeActionCommand(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return raw;
+
+  const lower = raw.toLowerCase();
+  const looksLikeIssue =
+    /\b(issue|mint|create|generate|produce)\b/.test(lower) &&
+    /\b(certificate|certificates|gec)\b/.test(lower);
+
+  const hasLocation =
+    /\blocation\b/.test(lower) ||
+    /\bin\s+[a-z]/.test(lower);
+
+  if (looksLikeIssue && !hasLocation) {
+    return `${raw} location ${DEFAULT_CERT_LOCATION}`;
+  }
+
+  return raw;
+}
+
 async function callRag(message, userId) {
   const url = `${RAG_BASE}/chat`;
   const response = await axios.post(
@@ -233,11 +256,12 @@ app.post("/api/chat", requireAuth, async (req, res) => {
   }
 
   const raw = message.trim();
+  const normalized = normalizeActionCommand(raw);
 
   try {
     if (isActionIntent(raw)) {
-      console.log("➡️ Routed to ACTION backend:", raw);
-      const result = await callActionBackend(raw, uid, authorization);
+      console.log("➡️ Routed to ACTION backend:", normalized);
+      const result = await callActionBackend(normalized, uid, authorization);
       return res.json(result);
     }
 

@@ -550,11 +550,11 @@ function formatMcpBodyHtml(body) {
           <div class="mcp-header-icon">${ok ? "✅" : "⚠️"}</div>
           <div class="mcp-header-title">${ok ? "Blockchain Transaction Successful" : "Blockchain Transaction Failed"}</div>
         </div>
-        <span class="mcp-tag">APTOS TX</span>
+        <span class="mcp-tag ${ok ? "" : "is-error"}">APTOS TX</span>
       </div>
       <div class="mcp-main-row">
         <div class="mcp-primary-label">Transaction status</div>
-        <div class="mcp-primary-number" style="font-size:18px;">${ok ? "Success" : "Failed"}</div>
+        <div class="mcp-primary-number ${ok ? "" : "is-error"}" style="font-size:18px;">${ok ? "Success" : "Failed"}</div>
       </div>
       <div class="mcp-grid">
         <div style="grid-column: span 3;">
@@ -565,14 +565,14 @@ function formatMcpBodyHtml(body) {
       <div class="mcp-grid">
         <div style="grid-column: span 3;">
           <div class="mcp-field-label">VM Status</div>
-          <div class="mcp-field-value">${vmStatus}</div>
+          <div class="mcp-field-value" style="word-break: break-word; overflow-wrap: anywhere;">${vmStatus}</div>
         </div>
       </div>
       <div class="mcp-footer" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
         <div>
           ${
             explorerUrl
-              ? `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:#166534;font-weight:600;text-decoration:none;">Open in Aptos Explorer ↗</a>`
+              ? `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:${ok ? "#166534" : "#b91c1c"};font-weight:600;text-decoration:none;">Open in Aptos Explorer ↗</a>`
               : "No explorer link available."
           }
         </div>

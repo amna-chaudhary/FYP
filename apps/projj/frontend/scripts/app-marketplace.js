@@ -50,6 +50,95 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/"/g, "&quot;");
+}
+
+function ensureMarketModalStyles() {
+  if (document.getElementById("market-modal-styles")) return;
+  const style = document.createElement("style");
+  style.id = "market-modal-styles";
+  style.textContent = `
+    .market-modal-overlay{position:fixed;inset:0;background:rgba(10,26,23,.45);display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
+    .market-modal{width:min(640px,96vw);max-height:88vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.22);padding:18px}
+    .market-modal-head h3{margin:0 0 12px;font-family:var(--font-display);font-size:1.2rem;color:var(--text-strong)}
+    .market-modal-grid{display:grid;grid-template-columns:1fr;gap:10px}
+    .market-modal-field{display:flex;flex-direction:column;gap:6px}
+    .market-modal-field span{font-size:.78rem;font-weight:600;color:var(--text-soft)}
+    .market-modal-field input,.market-modal-field select{width:100%;max-width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 11px;font-size:.9rem;background:var(--surface);color:var(--text);font-family:inherit}
+    .market-modal-field input:focus,.market-modal-field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,152,139,.14)}
+    .market-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+    .market-modal-btn{border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--text)}
+    .market-modal-submit{background:var(--primary);color:#fff;border-color:transparent}
+    @media (max-width:700px){.market-modal{padding:14px}}
+  `;
+  document.head.appendChild(style);
+}
+
+function openMarketForm(config) {
+  ensureMarketModalStyles();
+  const title = config?.title || "Marketplace Form";
+  const submitLabel = config?.submitLabel || "Submit";
+  const fields = Array.isArray(config?.fields) ? config.fields : [];
+
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "market-modal-overlay";
+
+    const fieldsHtml = fields.map((f) => {
+      const id = `market-form-${f.name}`;
+      const val = f.value == null ? "" : String(f.value);
+      if (f.type === "select") {
+        const options = (f.options || []).map((opt) => {
+          const ov = String(opt.value ?? "");
+          const selected = ov === val ? " selected" : "";
+          return `<option value="${escapeAttr(ov)}"${selected}>${escapeHtml(opt.label ?? ov)}</option>`;
+        }).join("");
+        return `<label class="market-modal-field" for="${id}"><span>${escapeHtml(f.label || f.name)}</span><select id="${id}" name="${escapeAttr(f.name)}">${options}</select></label>`;
+      }
+      return `<label class="market-modal-field" for="${id}"><span>${escapeHtml(f.label || f.name)}</span><input id="${id}" name="${escapeAttr(f.name)}" type="${escapeAttr(f.type || "text")}" value="${escapeAttr(val)}" ${f.min != null ? `min="${escapeAttr(String(f.min))}"` : ""} ${f.step != null ? `step="${escapeAttr(String(f.step))}"` : ""} ${f.required ? "required" : ""} placeholder="${escapeAttr(f.placeholder || "")}" /></label>`;
+    }).join("");
+
+    overlay.innerHTML = `
+      <div class="market-modal" role="dialog" aria-modal="true" aria-label="${escapeAttr(title)}">
+        <div class="market-modal-head"><h3>${escapeHtml(title)}</h3></div>
+        <form class="market-modal-form">
+          <div class="market-modal-grid">${fieldsHtml}</div>
+          <div class="market-modal-actions">
+            <button type="button" class="market-modal-btn market-modal-cancel">Cancel</button>
+            <button type="submit" class="market-modal-btn market-modal-submit">${escapeHtml(submitLabel)}</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const form = overlay.querySelector("form");
+    const cancelBtn = overlay.querySelector(".market-modal-cancel");
+    const firstInput = overlay.querySelector("input,select");
+    if (firstInput) firstInput.focus();
+
+    function close(result) {
+      overlay.remove();
+      resolve(result);
+    }
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close(null);
+    });
+    cancelBtn?.addEventListener("click", () => close(null));
+    form?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const out = {};
+      fields.forEach((f) => {
+        const el = form.querySelector(`[name="${f.name}"]`);
+        out[f.name] = el ? String(el.value || "").trim() : "";
+      });
+      close(out);
+    });
+  });
+}
+
 function getEnergyMixFromRegistry() {
   const txs = getRegistryTxsSafe();
   const mix = {};
@@ -176,12 +265,13 @@ function buildDynamicOpportunities() {
   manualListings.forEach((listing) => {
     const qty = Number(listing.volume) || 0;
     if (qty <= 0) return;
+    const certLabel = listing.certId ? ` · Cert #${listing.certId}` : "";
     opportunities.push({
       id: listing.id || `manual-${idCounter++}`,
       type: "buy",
       status: listing.status || "open",
       title: `${listing.energySource || "Renewable"} – ${qty} MWh`,
-      subtitle: `${listing.seller || "Seller"} · Listed on marketplace`,
+      subtitle: `${listing.seller || "Seller"}${certLabel} · Listed on marketplace`,
       priceLabel: "Ask price",
       priceValue:
         listing.price != null
@@ -600,46 +690,45 @@ function attachAdvancedFilterHandler() {
   }
 }
 
-function openSellCertificateFlow() {
+async function openSellCertificateFlow() {
   const accounts = getRegistryAccountsSafe().filter((a) => Number(a.balance) > 0);
   if (!accounts.length) {
     window.alert("No account has available certificates to sell yet.");
     return;
   }
 
-  const accountHint = accounts
-    .map((a) => `${a.accountId} (${formatPlainNumber(a.balance)} MWh available)`)
-    .join("\n");
+  const sellerOptions = accounts.map((a) => ({
+    value: String(a.accountId),
+    label: `${a.accountId} (${formatPlainNumber(a.balance)} MWh)`
+  }));
+  const result = await openMarketForm({
+    title: "List Certificate",
+    submitLabel: "Create Listing",
+    fields: [
+      { name: "seller", label: "Seller Account", type: "select", options: sellerOptions, value: sellerOptions[0]?.value || "" },
+      { name: "certId", label: "Certificate ID", type: "text", required: true, placeholder: "e.g. 1" },
+      { name: "quantity", label: "Quantity (MWh)", type: "number", min: 0.1, step: 0.1, required: true, value: "10" },
+      { name: "price", label: "Ask Price per MWh", type: "number", min: 1, step: 1, required: true, value: "1750" },
+      { name: "energySource", label: "Energy Source", type: "text", required: true, value: "Solar" }
+    ]
+  });
+  if (!result) return;
 
-  const seller = window.prompt(`Enter seller account ID:\n${accountHint}`, accounts[0].accountId);
-  if (seller === null) return;
-
-  const sellerAcc = accounts.find((a) => String(a.accountId) === String(seller).trim());
+  const sellerAcc = accounts.find((a) => String(a.accountId) === String(result.seller || "").trim());
   if (!sellerAcc) return window.alert("Invalid seller account.");
-
-  const qtyInput = window.prompt(
-    `How many MWh do you want to sell? (Max ${formatPlainNumber(sellerAcc.balance)})`,
-    String(Math.min(100, Number(sellerAcc.balance) || 0))
-  );
-  if (qtyInput === null) return;
-  const qty = Number(qtyInput);
-  if (!Number.isFinite(qty) || qty <= 0 || qty > Number(sellerAcc.balance)) {
-    return window.alert("Invalid quantity.");
-  }
-
-  const priceInput = window.prompt("Set ask price per MWh (e.g. 1750):", "1750");
-  if (priceInput === null) return;
-  const price = Number(priceInput);
+  const qty = Number(result.quantity);
+  if (!Number.isFinite(qty) || qty <= 0 || qty > Number(sellerAcc.balance)) return window.alert("Invalid quantity.");
+  const price = Number(result.price);
   if (!Number.isFinite(price) || price <= 0) return window.alert("Invalid price.");
-
-  const sourceInput = window.prompt("Energy source (e.g. Solar, Wind):", "Solar");
-  if (sourceInput === null) return;
-  const energySource = String(sourceInput || "Renewable").trim() || "Renewable";
+  const energySource = String(result.energySource || "Renewable").trim() || "Renewable";
+  const certId = String(result.certId || "").trim();
+  if (!certId) return window.alert("Certificate ID is required.");
 
   if (!Array.isArray(state.marketplace.manualListings)) state.marketplace.manualListings = [];
   state.marketplace.manualListings.unshift({
     id: `manual-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     seller: sellerAcc.accountId,
+    certId,
     volume: qty,
     price,
     energySource,
@@ -652,19 +741,24 @@ function openSellCertificateFlow() {
   saveToStorage();
 }
 
-function openBuyDemandFlow() {
-  const buyer = window.prompt("Enter buyer account ID:", state.user?.id || "buyer-account");
-  if (buyer === null || !String(buyer).trim()) return;
-  const qtyInput = window.prompt("How many MWh do you want to buy?", "100");
-  if (qtyInput === null) return;
-  const qty = Number(qtyInput);
+async function openBuyDemandFlow() {
+  const result = await openMarketForm({
+    title: "Create Buy Demand",
+    submitLabel: "Create Demand",
+    fields: [
+      { name: "buyer", label: "Buyer Account", type: "text", required: true, value: state.user?.id || "buyer-account" },
+      { name: "quantity", label: "Quantity (MWh)", type: "number", min: 0.1, step: 0.1, required: true, value: "100" },
+      { name: "bid", label: "Bid Price per MWh (optional)", type: "number", min: 1, step: 1, value: "1700" },
+      { name: "energySource", label: "Preferred Energy Source", type: "text", value: "Solar" }
+    ]
+  });
+  if (!result) return;
+  const buyer = String(result.buyer || "").trim();
+  if (!buyer) return;
+  const qty = Number(result.quantity);
   if (!Number.isFinite(qty) || qty <= 0) return window.alert("Invalid quantity.");
-  const bidInput = window.prompt("Set bid price per MWh (optional):", "1700");
-  if (bidInput === null) return;
-  const bid = String(bidInput).trim() === "" ? null : Number(bidInput);
+  const bid = String(result.bid || "").trim() === "" ? null : Number(result.bid);
   if (bid !== null && (!Number.isFinite(bid) || bid <= 0)) return window.alert("Invalid bid.");
-  const sourceInput = window.prompt("Preferred energy source (optional):", "Solar");
-  if (sourceInput === null) return;
 
   if (!Array.isArray(state.marketplace.manualDemands)) state.marketplace.manualDemands = [];
   state.marketplace.manualDemands.unshift({
@@ -672,7 +766,7 @@ function openBuyDemandFlow() {
     buyer: String(buyer).trim(),
     volume: qty,
     price: bid,
-    energySource: String(sourceInput || "Any renewable").trim() || "Any renewable",
+    energySource: String(result.energySource || "Any renewable").trim() || "Any renewable",
     status: "open",
     createdAt: new Date().toISOString()
   });
