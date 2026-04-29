@@ -13,7 +13,7 @@ const AUTH_ME_URL = window.ECB_API?.AUTH_ME_URL || "http://127.0.0.1:3000/api/au
 // -------------------------
 // Local storage keys
 // -------------------------
-const STORAGE_KEY = "gec_chat_state_v2";
+const STORAGE_KEY_BASE = "gec_chat_state_v2";
 const USER_KEY = "gecUser_plain";
 const TOKEN_KEY = "gecToken_plain";
 const AUTH_USER_KEYS = ["ecb-user", "energycert_user", "user", USER_KEY];
@@ -60,9 +60,32 @@ function _emptyRegistry() {
   };
 }
 
+function getStateStorageKey() {
+  let userId =
+    state?.user?.email ||
+    state?.user?.id ||
+    state?.user?._id ||
+    null;
+
+  if (!userId) {
+    try {
+      for (const key of AUTH_USER_KEYS) {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        userId = parsed?.email || parsed?.id || parsed?._id || null;
+        if (userId) break;
+      }
+    } catch (e) {}
+  }
+
+  const scope = userId ? String(userId).toLowerCase() : "anon";
+  return `${STORAGE_KEY_BASE}::${scope}`;
+}
+
 function loadFromStorage() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStateStorageKey());
     if (!raw) return;
 
     const parsed = JSON.parse(raw);
@@ -102,7 +125,7 @@ function saveToStorage() {
       marketplace: state.marketplace || null
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(getStateStorageKey(), JSON.stringify(payload));
   } catch (e) {
     console.error("Failed to save app state:", e);
   }

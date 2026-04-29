@@ -9,8 +9,8 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   // ── Restore persisted state ────────────────────────────────────
-  if (typeof loadFromStorage === "function") loadFromStorage();
   if (typeof loadUser === "function") loadUser();
+  if (typeof loadFromStorage === "function") loadFromStorage();
   if (typeof protectPrivateRoute === "function" && !(await protectPrivateRoute())) return;
 
   // ── DOM refs ───────────────────────────────────────────────────
