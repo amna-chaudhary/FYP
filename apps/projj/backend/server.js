@@ -165,6 +165,12 @@ function isActionIntent(text) {
   return isExplicitActionCommand(t);
 }
 
+function isActionFollowup(text) {
+  const t = String(text || "").trim().toLowerCase();
+  if (!t) return false;
+  return /^(yes|y|no|n|cancel|confirm|proceed|continue|ok|okay)$/i.test(t);
+}
+
 function normalizeActionCommand(text) {
   const raw = String(text || "").trim();
   if (!raw) return raw;
@@ -259,7 +265,7 @@ app.post("/api/chat", requireAuth, async (req, res) => {
   const normalized = normalizeActionCommand(raw);
 
   try {
-    if (isActionIntent(raw)) {
+    if (isActionIntent(raw) || isActionFollowup(raw)) {
       console.log("➡️ Routed to ACTION backend:", normalized);
       const result = await callActionBackend(normalized, uid, authorization);
       return res.json(result);
