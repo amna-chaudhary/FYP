@@ -1,6 +1,6 @@
 # EnergyCert Bot / GEC Platform
 
-EnergyCert Bot is a Final Year Project for a Green Energy Certificate (GEC) platform. It includes a browser chat UI, a Node.js router backend, a Python RAG service, and a FastAPI/Aptos action backend for certificate, marketplace, and audit operations.
+EnergyCert Bot is a Green Energy Certificate (GEC) platform. It includes a browser chat UI, a Node.js router backend, a Python RAG service, and a FastAPI/Aptos action backend for certificate, marketplace, and audit operations.
 
 ## What This Project Does
 
