@@ -1,10 +1,4 @@
-// auth_login.js (FULL CODE - improved + aligned with your earlier apiPostJson helper)
-//
-// ✅ Keeps your UI/DOM behavior
-// ✅ Validates inputs
-// ✅ Uses apiPostJson() (adds Authorization automatically if token exists)
-// ✅ Preserves your "demo mode" fallback if backend not reachable
-// ✅ Stores user+token via saveUser() when login/logout happens (blockchain/MCP ready)
+
 
 function openLoginModal() {
   const screen = document.getElementById("login-screen");
