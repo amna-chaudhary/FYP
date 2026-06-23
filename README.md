@@ -2,35 +2,20 @@
 
 EnergyCert Bot is a Green Energy Certificate (GEC) platform. It includes a browser chat UI, a Node.js router backend, a Python RAG service, and a FastAPI/Aptos action backend for certificate, marketplace, and audit operations.
 
-## What This Project Does
+# What This Project Does
 
-The project supports two main flows:
+This project is a blockchain-based Green Energy Certificate (GEC) system that supports two main workflows:
 
-1. **Ask questions about GEC**
+---
 
-   Example:
+## 1. Ask Questions About GEC (RAG-based AI System)
 
-   ```text
-   What is a Green Energy Certificate?
-   How does certificate transfer work?
-   Explain the marketplace workflow.
-   ```
+Users can ask natural language questions related to Green Energy Certificates, such as:
 
-   These requests go to the Python RAG service.
-
-2. **Run concrete blockchain actions**
-
-   Example:
-
-   ```text
-   issue 50 solar certificate location Lahore
-   transfer cert 1 to 0xabc...
-   claim cert 2
-   list cert 3 price 100
-   ```
-
-   These requests go to the FastAPI action backend and Aptos transaction layer.
-
+```text
+What is a Green Energy Certificate?
+How does certificate transfer work?
+Explain the marketplace workflow.
 ## Project Structure
 
 ```text
