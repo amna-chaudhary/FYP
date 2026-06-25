@@ -1,15 +1,4 @@
-/* =============================================================
-   EnergyCert Bot — app-chat.js
-   Replaces renderHistory + renderMessages with modern versions:
-   - Pin/unpin chats (persisted via saveToStorage)
-   - Section headers (Pinned / Chats) with counts
-   - Proper empty states
-   - Message Copy / Edit / Retry built-in
-   ============================================================= */
 
-/* ============================================
-   Inline SVG icons
-   ============================================ */
 const SVG_ICONS = {
   kebab: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',
   pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-2-5V6a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3v6l-2 5z"/></svg>',

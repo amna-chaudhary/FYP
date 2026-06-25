@@ -1,11 +1,4 @@
-// app-init.js
-// ---------------------------------------------------------------
-// Startup + event wiring. Runs once on DOMContentLoaded.
-// NOTE: the sidebar user-menu (kebab -> Settings / Logout) and the
-//       Settings modal are wired up inside index.html's inline
-//       script — do NOT re-wire them here or the toggle fires twice
-//       and the menu appears to do nothing.
-// ---------------------------------------------------------------
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // ── Restore persisted state ────────────────────────────────────
@@ -84,8 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // ── Dock send ──────────────────────────────────────────────────
+ // ── Dock send ──────────────────────────────────────────────────
   if (dockSendBtn && dockInput) {
     dockSendBtn.addEventListener("click", () => {
       const text = dockInput.value;

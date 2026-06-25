@@ -1,11 +1,4 @@
-// app-marketplace.js
-// Marketplace view powered by session registry data
-// Includes:
-// - working All / Buy / Sell tabs
-// - working Advanced filters
-// - empty-state + demo fallback opportunities
-// - clickable cards that push info into chat
-// - automatic refresh compatibility with registry updates
+
 
 if (!state.marketplace) {
   state.marketplace = {

@@ -1,11 +1,4 @@
-// app-config.js
 
-// -------------------------
-// API endpoints
-// -------------------------
-// IMPORTANT:
-// Frontend must talk to the NODE ROUTER, not directly to action backend.
-// Router decides whether request goes to RAG backend or Action backend.
 const API_URL = "http://127.0.0.1:3000/api/chat";
 const AUTH_SSI_URL = "http://localhost:3000/api/auth/ssi-login";
 
