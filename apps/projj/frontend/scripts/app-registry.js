@@ -1,9 +1,4 @@
-// app-registry.js
-// ✅ Supports old MCP format + new nested MCP format
-// ✅ Supports direct blockchain tx response
-// ✅ Keeps registry balances / tx history / rejected commands
-// ✅ Shows proof / audit info when available
-// ✅ Auto-refreshes marketplace when registry changes
+
 
 function ensureRegistryAccount(id) {
   const key = id || "unknown";
